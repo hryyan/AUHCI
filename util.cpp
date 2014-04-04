@@ -1,21 +1,53 @@
-// util.h: ÁãËéµÄ¶¨Òå
-// 
+// util.h: é›¶ç¢çš„å®šä¹‰
+//
 // Created by Vincent Yan in 2014/03/17
 
 #include "util.h"
 
 /**
- * °ÑwindowsµÄ\×ª»»³ÉÍ¨ÓÃµÄ/
- * @param s in: ĞèÒª×ª»»µÄ×Ö·û´®
- */
+* æŠŠwindowsçš„\è½¬æ¢æˆé€šç”¨çš„/
+* @param s in: éœ€è¦è½¬æ¢çš„å­—ç¬¦ä¸²
+*/
 void ConvertBackslashesToForwardAndStripFinalSlash(char* s)
 {
     int i;
-
+    
     for (i = 0; s[i]; i++)       // convert \ to /
-        if (s[i] == '\\')
-            s[i] = '/';
-
+    if (s[i] == '\\')
+    s[i] = '/';
+    
     if (i > 0 && s[i-1] == '/')  // remove final / if any
-        s[i-1] = 0;
+    s[i-1] = 0;
+}
+
+/**
+* æŠŠMatè½¬æ¢æˆQImageï¼ˆMatçš„å¤§å°åªèƒ½åœ¨åº•å±‚å¾—åˆ°ï¼‰
+* @param  in:  Mat
+* @return    QImageçš„æŒ‡é’ˆ
+*/
+QImage* Mat2QImage(Mat& I)
+{
+    int channelNum = I.channels();
+    
+    QImage *img = new QImage(I.cols, I.rows, QImage::Format_RGB32);
+    for (int i = 0; i < I.rows; i++)
+    {
+        uchar* Mi = I.ptr<uchar>(i);
+        for (int j = 0; j < I.cols; j++)
+        {
+            if (channelNum == 1)
+            {
+                int r = Mi[j];
+                img->setPixel(j, i, qRgb(r, r, r));
+            }
+            else if (channelNum == 3)
+            {
+                int r = Mi[2+j*3];
+                int g = Mi[1+j*3];
+                int b = Mi[0+j*3];
+                img->setPixel(j, i, qRgb(r, g, b));
+            }
+        }
+    }
+    return img;
 }

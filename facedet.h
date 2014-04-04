@@ -52,6 +52,6 @@ static FaceDet faceDet;
  * 打印人脸
  * @return QImage
  */
-QImage* printFace();
+Mat printFace();
 
 #endif //FACEDET_H

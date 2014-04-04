@@ -1,14 +1,14 @@
-// util.h: ÁãËéµÄ¶¨Òå
-// 
+// util.h: é›¶ç¢çš„å®šä¹‰
+//
 // Created by Vincent Yan in 2014/03/17
 
 #ifndef UTIL_H
 #define UTIL_H
 
-// ±ê×¼CµÄÍ·ÎÄ¼ş
+// æ ‡å‡†Cçš„å¤´æ–‡ä»¶
 #include <cstring>
 
-// STLµÄÍ·ÎÄ¼ş
+// STLçš„å¤´æ–‡ä»¶
 #include <vector>
 #include <string>
 #include <utility>
@@ -16,13 +16,14 @@ using std::string;
 using std::vector;
 using std::pair;
 
-// QTµÄÍ·ÎÄ¼ş
+// QTçš„å¤´æ–‡ä»¶
 #include <QImage>
 #include <QtDebug>
+#include <QTimer>
 #include <QTime>
 #include <QString>
 
-// OpenCVµÄÍ·ÎÄ¼ş
+// OpenCVçš„å¤´æ–‡ä»¶
 #include "opencv2\opencv.hpp"
 #include "opencv2\imgproc\imgproc.hpp"
 #include "opencv2\gpu\gpu.hpp"
@@ -37,12 +38,12 @@ using cv::sqrt;
 
 #include "source.h"
 
-// ÊÇ·ñÊ¹ÓÃGPU¼ÓËÙ
+// æ˜¯å¦ä½¿ç”¨GPUåŠ é€Ÿ
 #define USE_GPU
 
-// ¶¨ÒåÒ»Ğ©·½±ãÊ¹ÓÃµÄÀàĞÍ
+// å®šä¹‰ä¸€äº›æ–¹ä¾¿ä½¿ç”¨çš„ç±»å‹
 typedef vector<Rect>  vec_Rect;
- 
+
 typedef cv::Mat_<double> MAT;
 typedef unsigned char byte;
 typedef cv::Mat_<byte> Image;
@@ -69,24 +70,24 @@ struct DetPar   // the stucture describing a face detection
     double rot;                 // in-plane rotation
     double yaw;                 // yaw
     EYAW   eyaw;                // yaw as an enum
-
+    
     DetPar() // constructor sets all fields to INVALID
-        :x(INVALID),
-         y(INVALID),
-         width(INVALID),
-         height(INVALID),
-         lex(INVALID),
-         ley(INVALID),
-         rex(INVALID),
-         rey(INVALID),
-         mouthx(INVALID),
-         mouthy(INVALID),
-         rot(INVALID),
-         yaw(INVALID),
-         eyaw(EYAW(INVALID))
-         {
-
-         };
+    :x(INVALID),
+    y(INVALID),
+    width(INVALID),
+    height(INVALID),
+    lex(INVALID),
+    ley(INVALID),
+    rex(INVALID),
+    rey(INVALID),
+    mouthx(INVALID),
+    mouthy(INVALID),
+    rot(INVALID),
+    yaw(INVALID),
+    eyaw(EYAW(INVALID))
+    {
+        
+    };
 };
 
 // A macro to disallow the copy constructor and operator= functions.
@@ -98,8 +99,8 @@ struct DetPar   // the stucture describing a face detection
 // for the class in question, but shouldn't be used until that is checked.
 // For details, See Item 6 Meyers Effective C++ and the Google C++ Style Guide.
 #define DISALLOW_COPY_AND_ASSIGN(ClassName) \
-          ClassName(const ClassName&);      \
-          void operator=(const ClassName&)
+ClassName(const ClassName&);      \
+void operator=(const ClassName&)
 
 static inline int NSIZE(const MAT &m)
 {
@@ -117,9 +118,16 @@ template <typename T> T Clamp(const T x, const T min, const T max)
 }
 
 /**
- * °ÑwindowsµÄ\×ª»»³ÉÍ¨ÓÃµÄ/
- * @param s in: ĞèÒª×ª»»µÄ×Ö·û´®
- */
+* æŠŠwindowsçš„\è½¬æ¢æˆé€šç”¨çš„/
+* @param s in: éœ€è¦è½¬æ¢çš„å­—ç¬¦ä¸²
+*/
 void ConvertBackslashesToForwardAndStripFinalSlash(char* s);
+
+/**
+* æŠŠMatè½¬æ¢æˆQImageï¼ˆMatçš„å¤§å°åªèƒ½åœ¨åº•å±‚å¾—åˆ°ï¼‰
+* @param  in:  Mat
+* @return      QImageçš„æŒ‡é’ˆ
+*/
+QImage* Mat2QImage(Mat& T);
 
 #endif //UTIL_H

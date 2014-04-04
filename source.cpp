@@ -1,67 +1,66 @@
-// facedet.h: ��Դ��ȡ������ͷ����Ƶ��ͼƬ��
-// 
+// facedet.h: 来源获取（摄像头、视频、图片）
+//
 // Created by Vincent Yan in 2014/03/18
 
 #include "source.h"
 
+// 全局变量，整个程序中数据流的核心，将frame提供给图像处理的单元使用
 Mat frame;
+
+// 视频流的传递
 VideoCapture cap;
 
-QImage* Mat2QImage(Mat& I)
+/**
+* 检测摄像头是否被正确开启
+* @return         是否已经正确开启
+*/
+bool isCameraInited()
 {
-	int channelNum = I.channels();
-
-	QImage *img = new QImage(I.cols, I.rows, QImage::Format_RGB32);
-	for (int i = 0; i < I.rows; i++)
-	{
-		uchar* Mi = I.ptr<uchar>(i);
-		for (int j = 0; j < I.cols; j++)
-		{
-			if (channelNum == 1)
-			{
-				int r = Mi[j];
-				img->setPixel(j, i, qRgb(r, r, r));
-			}
-			else if (channelNum == 3)
-			{
-				int r = Mi[2+j*3];
-				int g = Mi[1+j*3];
-				int b = Mi[0+j*3];
-				img->setPixel(j, i, qRgb(r, g, b));
-			}
-		}
-	}
-	return img;
+    cap = VideoCapture(0);
+    if (!cap.isOpened())
+    return false;
+    return true; 
 }
 
-bool initCamera()
+/**
+* 检测视频是否被正确开启
+* @param  in:    视频的地址
+* @return        是否被正确开启
+*/
+bool isVideoInited(string path)
 {
-	cap = VideoCapture(0);
-	if (!cap.isOpened())
-		return false;
-	return true;
+    cap = VideoCapture(path);
+    if (!cap.isOpened())
+    return false;
+    return true;
 }
 
-bool initVideo(string path)
+/**
+* 照片是否已经被打开
+* @param  in:  照片的地址
+* @return        是否已经被打开
+*/
+bool isPicInited(string path)
 {
-	cap = VideoCapture(path);
-	if (!cap.isOpened())
-		return false;
-	return true;
+    frame = cv::imread(path, -1);
+    if (frame.rows == 0 || frame.cols == 0)
+    return false;
+    return true;
 }
 
-bool initPic(string path)
-{
-	frame = cv::imread(path, -1);
-	if (frame.rows == 0 || frame.cols == 0)
-		return false;
-	return true;
-}
+/**
+* TODO: 打印视频流与打印照片没有被正确的区分开
+*/
 
-QImage* printScreen()
+/**
+* 如果Capture被打开，则认为打开摄像头或者视频，如果Capture没被打开，则认为打开照片
+* @return        返回的是frame
+*/
+Mat printScreen()
 {
-	if (cap.isOpened())
-		cap >> frame;
-
-	return Mat2QImage(frame);
+    if (cap.isOpened())
+    cap >> frame;
+    
+    return frame;
 }
+ 

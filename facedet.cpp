@@ -3,7 +3,6 @@
 // Created by Vincent Yan in 2014/03/17
 
 #include "facedet.h"
-#include "source.h"
 
 // source中每一帧的Mat
 extern Mat frame;
@@ -308,7 +307,7 @@ const DetPar FaceDet::NextFace_(void)
  * 打印人脸
  * @return QImage
  */
-QImage* printFace()
+Mat printFace()
 {
     Mat face, face_mask, dst;
     
@@ -340,5 +339,5 @@ QImage* printFace()
 
     dst.copyTo(frame);
     //bilateralFilter(face, face_after_bilateral_filter, 7, 9, 9);
-    return Mat2QImage(dst);
+    return dst;
 }
