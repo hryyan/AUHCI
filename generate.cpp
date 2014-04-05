@@ -142,8 +142,22 @@ int main()
 	//result_host.copyTo(frame);
 	//tmp_jpg = printGabor_2(1, 1);
 	//tmp_jpg->save("lena_AfterAll_Cpu.jpg");
-	Preprocesor preprocessor(QString("D:\\ck\\cohn-kanade\\cohn-kanade"));
-	preprocessor.generator();
-	int CudaEnabledDeviceCount = cv::gpu::getCudaEnabledDeviceCount();
-	qDebug("%d", CudaEnabledDeviceCount);
+
+	//Preprocesor preprocessor(QString("D:\\ck\\cohn-kanade\\cohn-kanade"));
+	//preprocessor.generator();
+	//int CudaEnabledDeviceCount = cv::gpu::getCudaEnabledDeviceCount();
+	//qDebug("%d", CudaEnabledDeviceCount);
+
+	frame = cv::imread("imread.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	OpenEyeDetectors("C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV_64bit\\FacialExpression_x64\\CacadeClassifier");
+	Mat face = printFace();
+	cv::imwrite("imread_face.jpg", face);
+	DetPar detPar;
+	detPar.x = face.rows / 2; detPar.y = face.cols / 2;
+	detPar.width = face.rows; detPar.height = face.cols;
+	DetectEyes(detPar, face);
+	cv::circle(face, Point(detPar.lex, detPar.ley), 10, Scalar(255, 255, 255), -1, 8);
+	cv::circle(face, Point(detPar.rex, detPar.rey), 10, Scalar(255, 255, 255), -1, 8);
+	cv::imwrite("imread_eyes.jpg", face);
+	return 0;
 }

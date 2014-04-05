@@ -90,6 +90,8 @@ struct DetPar   // the stucture describing a face detection
     };
 };
 
+typedef vector<DetPar> vec_DetPar;
+
 // A macro to disallow the copy constructor and operator= functions.
 // This is used in the private declarations for a class where those member
 // functions have not been explicitly defined.  This macro prevents use of

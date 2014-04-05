@@ -9,6 +9,7 @@
 #include "gabor.h"
 #include "source.h"
 #include "facedet.h"
+#include "eyedet.h"
 
 class Preprocesor
 {

@@ -7,8 +7,6 @@
 // source中每一帧的Mat
 extern Mat frame;
 
-typedef vector<DetPar> vec_DetPar;
-
 // 级联分类器
 static cv::CascadeClassifier facedet_g;
 
@@ -24,7 +22,7 @@ static const int    DETECTOR_FLAGS  = 0;
  * 打开人脸检测器(Haar)
  * @param datadir   in: 分类器的目录地址
  */
-void FaceDet::OpenFaceDetector_(const char *datadir)
+void OpenFaceDetector_(const char *datadir)
 {
     char filename[SLEN] = "haarcascade_frontalface_alt2.xml";
 
@@ -70,7 +68,7 @@ static Image EmborderImg(int &leftborder, int &topborder, const Image& img)
  * @param nrows io: 调整前后Rect的高度
  * @param img   in: 源图像
  */
-void ForceRectIntoImg(int &ix, int &iy, int &ncols, int &nrows, const Image &img)
+static void ForceRectIntoImg(int &ix, int &iy, int &ncols, int &nrows, const Image &img)
 {
     ix = Clamp(ix, 0, img.cols-1);
 
@@ -100,7 +98,7 @@ void ForceRectIntoImg(int &ix, int &iy, int &ncols, int &nrows, const Image &img
  * @param rect io: 调整前后的Rect
  * @param img  in: 源图像
  */
-void ForceRectIntoImg(Rect &rect, const Image &img)
+static void ForceRectIntoImg(Rect &rect, const Image &img)
 {
     ForceRectIntoImg(rect.x, rect.y, rect.width, rect.height, img);
 }
@@ -127,7 +125,7 @@ static void DiscountSearchRegion(vec_Rect &feats, Rect &searchrect)
  * @param  minwidth_pixels in: 最小人脸像素
  * @return                 每个人脸一个矩阵
  */
-vec_Rect Detect(const Image &img, cv::CascadeClassifier *cascade, const Rect *searchrect, int minwidth_pixels)
+static vec_Rect Detect(const Image &img, cv::CascadeClassifier *cascade, const Rect *searchrect, int minwidth_pixels)
 {
     CV_Assert(!cascade->empty());
 
@@ -162,7 +160,7 @@ vec_Rect Detect(const Image &img, cv::CascadeClassifier *cascade, const Rect *se
  * @param img      in: 源图像
  * @param minwidth in: 图像宽度的百分比
  */
-void DetectFaces(vec_DetPar &detpars, const Image &img, int minwidth)
+static void DetectFaces(vec_DetPar &detpars, const Image &img, int minwidth)
 {
     int leftborder = 0, topborder = 0;
     Image bordered_img(BORDER_FRAC == 0 ? img : EmborderImg(leftborder, topborder, img));
@@ -268,10 +266,12 @@ static void DiscardMissizedFaces(vec_DetPar &detpars)
  * @param multiface in: 是否检测多张人脸
  * @param minwidth  in: 最小人脸
  */
-void FaceDet::DetectFaces_(const Image &img, bool multiface, int minwidth)
+vector<DetPar> DetectFaces_(const Image &img, bool multiface, int minwidth)
 {
     CV_Assert(!facedet_g.empty());
-    
+
+    vector<DetPar> detpars_;
+
     // 先检测所有人脸，再把不太好的结果去掉
     DetectFaces(detpars_, img, minwidth);
     DiscardMissizedFaces(detpars_);
@@ -286,21 +286,8 @@ void FaceDet::DetectFaces_(const Image &img, bool multiface, int minwidth)
         if (NSIZE(detpars_))
             detpars_.resize(1);        
     }
-    iface_ = 0;
-}
 
-/**
- * 返回下一个人脸参数
- * @return  人脸参数
- */
-const DetPar FaceDet::NextFace_(void)
-{
-    DetPar detpar;
-
-    if (iface_ < NSIZE(detpars_))
-        detpar = detpars_[iface_++];
-
-    return detpar;
+    return detpars_;
 }
 
 /**
@@ -312,13 +299,13 @@ Mat printFace()
     Mat face, face_mask, dst;
     
     if(facedet_g.empty())
-        faceDet.OpenFaceDetector_("C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV\\FacialExpression");
+        OpenFaceDetector_("C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV\\FacialExpression");
 
     if (frame.channels() == 3)
         cvtColor(frame, frame, CV_BGR2GRAY);
 
-    faceDet.DetectFaces_(frame, false, 30);
-    DetPar detPar = faceDet.NextFace_();
+    vector<DetPar> vec_detpar = DetectFaces_(frame, false, 30);
+    DetPar detPar = vec_detpar.at(0);
 
     if (detPar.x != INVALID)
     {
