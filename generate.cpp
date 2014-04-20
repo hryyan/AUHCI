@@ -14,38 +14,53 @@ const int iSize = 101;
 
 // 由于gpu::convolve函数的限制（默认会裁剪图像），所以需要在右边和下边添加边框
 // http://code.opencv.org/issues/1639
-const double BORDER_FRAC = 0.5;
+const double BORDER_FRAC = 1;
+
+// 由于gpu::convolve函数的限制，需要对识别好的人眼进行一个校准
+const double X_OFFSET = 51.;
+const double Y_OFFSET = 50.;
+
+// 把采集到的图像进行缩放，到统一尺寸
+const int RESIZE_WIDTH  = 150;
+const int RESIZE_HEIGHT = 150;
 
 /**
  * ctr，设定数据库的地址
- * @param  path 数据库地址
+ * @param  src_path 数据库地址
  */
-Preprocesor::Preprocesor(QString p)
+Preprocessor::Preprocessor(QString p)
 {
-	path = p;
+	src_path = p;
+	dst_path = QDir::currentPath()+"/AfterPreprocess/";
 	gabor.Init(Size(iSize, iSize), sqrt(2.0), 1, CV_32F);
 }
 
 /**
  * dtr
  */
-Preprocesor::~Preprocesor()
+Preprocessor::~Preprocessor()
 {
 
 }
 
 /**
  * 根据CK数据库的地址得到预处理后的图像
- * @param path CK数据库的地址
+ * @param src_path CK数据库的地址
  */
-void Preprocesor::generator()
+void Preprocessor::generator()
 {
 	QFileInfo dirinfo_outter, dirinfo_inner, fileinfo;
 	QFileInfoList middle_list, inner_list;
 	QDir outter_dir, middle_dir, inner_dir, dir;
 	QImage* tmp_jpg;
 	QString filepath, filename;
+	Mat face, gabor_result;
 	cv::gpu::GpuMat g_src, g_dst;
+	int index;
+
+	FILE *fp = fopen("CK_database_information.xml", "w+");
+	tinyxml2::XMLPrinter printer(fp);
+	printer.OpenElement("Main");
 
 	QStringList filters;
 	filters << "*.png";
@@ -55,7 +70,7 @@ void Preprocesor::generator()
 	inner_dir.setFilter(QDir::Files | QDir::Readable);
 	inner_dir.setNameFilters(filters);
 
-	outter_dir.cd(this->path);
+	outter_dir.cd(this->src_path);
 	outter_dir.setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
 	middle_dir.setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
 
@@ -65,6 +80,8 @@ void Preprocesor::generator()
 		middle_dir.cd(dirinfo_outter.absoluteFilePath());
 		qDebug() << dirinfo_outter.absoluteFilePath();
 		middle_list = middle_dir.entryInfoList();
+		printer.OpenElement("People");
+		printer.PushAttribute("name", dirinfo_outter.baseName().toStdString().c_str());
 
 		foreach(dirinfo_inner, middle_list)
 		{
@@ -72,16 +89,56 @@ void Preprocesor::generator()
 			qDebug() << dirinfo_inner.absoluteFilePath();
 			inner_list = inner_dir.entryInfoList();
 
+			printer.OpenElement("Expression");
+			printer.PushAttribute("class", dirinfo_inner.baseName().toStdString().c_str());
+
+			// 显示这张图片在这个表情中的帧数，从1开始
+			index = 0;
 			foreach(fileinfo, inner_list)
 			{
 				frame = cv::imread(fileinfo.absoluteFilePath().toStdString());
 				imwrite("imread.jpg", frame);
 				qDebug() << fileinfo.absoluteFilePath();
+				
+				index++;
+				printer.OpenElement("Frame");
+				printer.PushAttribute("Num", index);
+				printer.PushAttribute("jpg", fileinfo.baseName().toStdString().c_str());
 
-				tmp_jpg = Mat2QImage(printFace());
+				// 识别人脸
+				face = printFace();
+				cv::resize(face, face, Size(RESIZE_WIDTH, RESIZE_HEIGHT));
+				tmp_jpg = Mat2QImage(face);
 				filepath = QDir::currentPath()+"/AfterPreprocess/"+store_path+dirinfo_outter.fileName()+"/"+dirinfo_inner.fileName();
 				filename = "/"+fileinfo.baseName()+"face.jpg";
 				qDebug() << filepath;
+
+				// 识别人眼
+				DetPar detPar;
+				detPar.x = face.rows / 2; detPar.y = face.cols / 2;
+				detPar.width = face.rows; detPar.height = face.cols;
+				DetectEyes(detPar, face);
+
+				printer.OpenElement("Eye_Position");
+				printer.OpenElement("Left");
+				printer.OpenElement("X");
+				printer.PushText(detPar.lex);
+				printer.CloseElement();
+				printer.OpenElement("Y");
+				printer.PushText(detPar.ley);
+				printer.CloseElement();
+				printer.CloseElement();
+				printer.OpenElement("Right");
+				printer.OpenElement("X");
+				printer.PushText(detPar.rex);
+				printer.CloseElement();
+				printer.OpenElement("Y");
+				printer.PushText(detPar.rey);
+				printer.CloseElement();
+				printer.CloseElement();
+				printer.CloseElement();
+
+				printer.CloseElement();
 
 				if (!dir.exists(filepath))
 					dir.mkpath(filepath);
@@ -91,18 +148,21 @@ void Preprocesor::generator()
 				if (on)
 					qDebug("save face OK");
 
-				int top_buttom = frame.rows * BORDER_FRAC;
-				int left_right = frame.cols * BORDER_FRAC;
-				copyMakeBorder(frame, frame, 0, top_buttom, 0, left_right, cv::BORDER_REPLICATE);
+				int top_buttom = face.rows * BORDER_FRAC;
+				int left_right = face.cols * BORDER_FRAC;
+				copyMakeBorder(face, face, 0, top_buttom, 0, left_right, cv::BORDER_REPLICATE);
+				imwrite("imread_makeborder.jpg", face);
 
-				for (int i = 0; i < 5; i++)
+				for (int i = 0; i < 5; i++) // 尺度
 				{
-					for (int j = 0; j < 8; j++)
+					for (int j = 0; j < 8; j++) // 方向
 					{
 						// Begin: 衡量时间性能的QTime
 						QTime time1 = QTime::currentTime();
 
-						tmp_jpg = Mat2QImage(printGabor(this->gabor, i, j));
+						gabor_result = printGabor_(face, this->gabor, j, i);
+						Mat gabor_cropped = Mat(gabor_result, Rect(Point(150-101+1, 150-101+1), Point(gabor_result.cols, gabor_result.rows)));
+						tmp_jpg = Mat2QImage(gabor_cropped);
 
 						// End: 衡量时间性能的QTime
 						QTime time2 = QTime::currentTime();
@@ -118,46 +178,85 @@ void Preprocesor::generator()
 					}
 				}
 			}
+			printer.CloseElement();
+		}
+		printer.CloseElement();
+	}
+	printer.CloseElement();
+}
+
+/**
+ * 求所有Gabor滤波后数据的L2范数
+ */
+void Preprocessor::getL2()
+{
+	QFileInfo dirinfo_outter, dirinfo_inner, dirinfo_innest, fileinfo;
+	QFileInfoList middle_list, inner_list, innest_list;
+	QDir outter_dir, middle_dir, inner_dir, innest_dir, dir;
+	QImage* tmp_jpg;
+	QString filepath, filename;
+	Mat mat_restore[40], mat_tmp;
+
+	QStringList filters;
+	filters << "*.jpg";
+
+	innest_dir.setFilter(QDir::Files | QDir::Readable | QDir::NoDotAndDotDot);
+	innest_dir.setNameFilters(filters);
+
+	outter_dir.cd(this->dst_path);
+	outter_dir.setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
+	middle_dir.setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
+	inner_dir.setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
+
+	QFileInfoList list = outter_dir.entryInfoList();
+	foreach(dirinfo_outter, list) //S010, S011
+	{
+		middle_dir.cd(dirinfo_outter.absoluteFilePath());
+		qDebug() << dirinfo_outter.absoluteFilePath();
+		middle_list = middle_dir.entryInfoList();
+
+		foreach(dirinfo_inner, middle_list) //001, 002
+		{
+			inner_dir.cd(dirinfo_inner.absoluteFilePath());
+			qDebug() << dirinfo_inner.absoluteFilePath();
+			inner_list = inner_dir.entryInfoList();
+
+			foreach(dirinfo_innest, inner_list) //S010_001_01594215
+			{
+				innest_dir.cd(dirinfo_innest.absoluteFilePath());
+				qDebug() << dirinfo_innest.absoluteFilePath();
+				innest_list = innest_dir.entryInfoList();
+
+				int index = 0;
+				foreach(fileinfo, innest_list)
+				{
+					qDebug() << fileinfo.absoluteFilePath();
+					mat_restore[index] = cv::imread(fileinfo.absoluteFilePath().toStdString());
+					mat_restore[index].convertTo(mat_restore[index], CV_32F);
+					cv::pow(mat_restore[index], 2, mat_restore[index]);
+					index++;
+				}
+
+				mat_tmp = mat_restore[0].clone();
+				for (int i = 1; i < 40; ++i)
+				{
+					cv::add(mat_tmp, mat_restore[i], mat_tmp);
+				}
+				cv::pow(mat_tmp, 0.5, mat_tmp);
+				QString p = dirinfo_innest.absoluteFilePath() +"_merged.jpg";
+				qDebug() << p;
+				imwrite(p.toStdString(), mat_tmp);
+			}
 		}
 	}
 }
 
 int main()
 {
-	// Debug gpu::convolve
-	//cv::Mat src_host = cv::imread("lena.jpg", CV_LOAD_IMAGE_GRAYSCALE);
-	//cv::gpu::GpuMat dst, src;
-	//src.upload(src_host);
-
-	//int top_buttom = src.rows * 0.1;
-	//int left_right = src.cols * 0.1;
-
-	//cv::gpu::copyMakeBorder(src, dst, top_buttom, top_buttom, left_right, left_right, cv::BORDER_REPLICATE);
-
-	//cv::Mat result_host;
-	//dst.download(result_host);
-	//cv::imwrite("lena_AfterMakeBorder.jpg", result_host);
-
-	//QImage *tmp_jpg;
-	//result_host.copyTo(frame);
-	//tmp_jpg = printGabor_2(1, 1);
-	//tmp_jpg->save("lena_AfterAll_Cpu.jpg");
-
-	//Preprocesor preprocessor(QString("D:\\ck\\cohn-kanade\\cohn-kanade"));
-	//preprocessor.generator();
-	//int CudaEnabledDeviceCount = cv::gpu::getCudaEnabledDeviceCount();
-	//qDebug("%d", CudaEnabledDeviceCount);
-
-	frame = cv::imread("imread.jpg", CV_LOAD_IMAGE_GRAYSCALE);
 	OpenEyeDetectors("C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV_64bit\\FacialExpression_x64\\CacadeClassifier");
-	Mat face = printFace();
-	cv::imwrite("imread_face.jpg", face);
-	DetPar detPar;
-	detPar.x = face.rows / 2; detPar.y = face.cols / 2;
-	detPar.width = face.rows; detPar.height = face.cols;
-	DetectEyes(detPar, face);
-	cv::circle(face, Point(detPar.lex, detPar.ley), 10, Scalar(255, 255, 255), -1, 8);
-	cv::circle(face, Point(detPar.rex, detPar.rey), 10, Scalar(255, 255, 255), -1, 8);
-	cv::imwrite("imread_eyes.jpg", face);
+	Preprocessor preprocessor(QString("D:\\ck\\cohn-kanade\\cohn-kanade"));
+	preprocessor.generator();
+
+	preprocessor.getL2();
 	return 0;
 }

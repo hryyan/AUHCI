@@ -3,7 +3,7 @@ import os.path
 import ntpath
 
 src = "D:/ck/cohn-kanade/cohn-kanade"
-dst = "C:/Users/vincent/Documents/Visual Studio 2010/Projects/CV_64bit/FacialExpression_x64"
+dst = "C:/Users/vincent/Documents/Visual Studio 2010/Projects/CV_64bit/FacialExpression_x64/AfterPreprocess"
 
 src_image_num = 0
 dst_image_num = 0
@@ -12,9 +12,10 @@ src_dir_outter_list = os.listdir(src)
 dst_dir_outter_list = os.listdir(dst)
 
 src_dir_outter_list = [f for f in src_dir_outter_list
-                        if os.path.isdir(f) and f[0] == 'S']
+                        if os.path.isdir(src+'/'+f) and f[0] == 'S']
 dst_dir_outter_list = [f for f in dst_dir_outter_list
-                        if os.path.isdir(f) and f[0] == 'S']
+                        if os.path.isdir(dst+'/'+f) and f[0] == 'S']
+
 
 def cmp(path_name, dir_name):
     src_image_list = os.listdir(src+'/'+path_name+'/'+dir_name)
@@ -51,5 +52,3 @@ print "there are images in dst"
 print dst_image_num
 # print src_dir_outter_list
 # print dst_dir_outter_list
-
-raw_input()

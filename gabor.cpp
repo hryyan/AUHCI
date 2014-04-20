@@ -25,10 +25,11 @@ void Gabor::Init(Size ksize, double sigma, double gamma, int ktype)
     double mu[8] = {0, 1, 2, 3, 4, 5, 6, 7};
     double nu[5] = {0, 1, 2, 3, 4};
     
-    for (int i = 0; i < 5; ++i)
+    for (int i = 0; i < 5; ++i)	// 尺度
     {
-        for (int j = 0; j < 8; ++j)
+        for (int j = 0; j < 8; ++j) // 方向
         {
+			// mu是方向，nu是尺度
             gaborRealKernels.push_back(getRealGaborKernel(ksize, sigma, mu[j]*CV_PI/8+CV_PI/2, nu[i], gamma, ktype));
             gaborImagKernels.push_back(getImagGaborKernel(ksize, sigma, mu[j]*CV_PI/8+CV_PI/2, nu[i], gamma, ktype));
         }
@@ -331,7 +332,7 @@ void Gabor::getFilterRealImagPart(Mat& src,Mat& real,Mat& imag,Mat &outReal,Mat 
 /**
 * 输出对应相位和方向的Gabor特征的实部与虚部的L2范式
 * @param  方向
-* @param  频率
+* @param  尺度
 * @return
 */
 Mat printGabor(Gabor& gabor, int mu, int nu)
@@ -343,10 +344,10 @@ Mat printGabor(Gabor& gabor, int mu, int nu)
     
     if (!gabor.isInited)
     {
-        gabor.Init(Size(iSize, iSize), sqrt(2.0), 1, CV_32F);
+        gabor.Init(Size(iSize, iSize), CV_PI*2, 1, CV_32F);
     }
     
-    imwrite("before normalize.jpg", frame);
+    //imwrite("before normalize.jpg", frame);
     frame.convertTo(frame, CV_32F);
     normalize(frame, frame, 1, 0, CV_MINMAX, CV_32F);
     
@@ -358,3 +359,66 @@ Mat printGabor(Gabor& gabor, int mu, int nu)
     normalize(output, output, 255, 0, CV_MINMAX, CV_8UC1);
     return output;
 }
+
+/**
+* 输出对应相位和方向的Gabor特征的实部与虚部的L2范式
+* @param  方向
+* @param  尺度
+* @return
+*/
+Mat printGabor_(Mat m, Gabor& gabor, int mu, int nu)
+{
+	if (m.rows == 0 || m.cols == 0)
+	{
+		return m;
+	}
+
+	if (!gabor.isInited)
+	{
+		gabor.Init(Size(iSize, iSize), CV_PI*2, 1, CV_32F);
+	}
+
+	////imwrite("before normalize.jpg", m);
+	m.convertTo(m, CV_32F);
+	normalize(m, m, 1, 0, CV_MINMAX, CV_32F);
+
+	Mat out_real, out_imag, output;
+	gabor.getFilterRealImagPart(m, gabor.gaborRealKernels[nu*8+mu], gabor.gaborImagKernels[nu*8+mu], out_real, out_imag);
+
+	magnitude(out_real, out_imag, output);
+
+	normalize(output, output, 255, 0, CV_MINMAX, CV_8UC1);
+	return output;
+}
+
+/**
+ * 输出相关参数
+ */
+void printGaborPara()
+ {
+ 	Gabor gabor;
+ 	gabor.Init(Size(iSize, iSize), CV_PI*2, 1, CV_32F);
+ 	for (int i = 0; i < 5; i++)  // 尺度
+ 	{
+ 		for (int j = 0; j < 8; j++)  // 方向
+ 		{
+ 			Mat tmp;
+ 			char p[SLEN];
+ 			sprintf(p, "real_gabor_kernel_%d_%d.jpg", i, j);
+ 			normalize(gabor.gaborRealKernels[i*8+j], tmp, 0, 255, CV_MINMAX, CV_8U);
+ 			imwrite(p, tmp);
+
+ 			sprintf(p, "imag_gabor_kernel_%d_%d.jpg", i, j);
+			normalize(gabor.gaborImagKernels[i*8+j], tmp, 0, 255, CV_MINMAX, CV_8U);
+ 			imwrite(p,tmp);
+
+ 			sprintf(p, "magnitude_%d_%d.jpg", i, j);
+			normalize(gabor.getMagnitude(gabor.gaborRealKernels[i*8+j], gabor.gaborImagKernels[i*8+j]), tmp, 0, 255, CV_MINMAX, CV_8U);
+ 			imwrite(p, tmp);
+
+ 			sprintf(p, "phase_%d_%d.jpg", i, j);
+			normalize(gabor.getPhase(gabor.gaborRealKernels[i*8+j], gabor.gaborImagKernels[i*8+j]), tmp, 0, 255, CV_MINMAX, CV_8U);
+ 			imwrite(p, tmp);
+ 		}
+ 	}
+ }

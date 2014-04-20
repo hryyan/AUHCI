@@ -64,4 +64,17 @@ class Gabor
 */
 Mat printGabor(Gabor& gabor, int mu, int nu);
 
+/**
+* 输出对应相位和方向的Gabor特征的实部与虚部的L2范式
+* @param  方向
+* @param  频率
+* @return
+*/
+Mat printGabor_(Mat m, Gabor& gabor, int mu, int nu);
+
+/**
+ * 输出相关参数
+ */
+void printGaborPara();
+
 #endif //GABOR_H
