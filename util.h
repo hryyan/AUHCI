@@ -67,6 +67,7 @@ struct DetPar   // the stucture describing a face detection
     double lex, ley;            // center of left eye, left and right are wrt the viewer
     double rex, rey;            // ditto for right eye
     double mouthx, mouthy;      // center of mouth
+    double nosex, nosey;        // center of nose
     double rot;                 // in-plane rotation
     double yaw;                 // yaw
     EYAW   eyaw;                // yaw as an enum
@@ -82,6 +83,8 @@ struct DetPar   // the stucture describing a face detection
     rey(INVALID),
     mouthx(INVALID),
     mouthy(INVALID),
+    nosex(INVALID),
+    nosey(INVALID),
     rot(INVALID),
     yaw(INVALID),
     eyaw(EYAW(INVALID))

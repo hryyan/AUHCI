@@ -8,12 +8,6 @@
 #define FACEDET_H
 
 /**
- * 打开人脸检测器(Haar)
- * @param datadir   in: 分类器的目录地址
- */
-void OpenFaceDetector_(const char* datadir);
-
-/**
  * 检测人脸
  * @param img       in: 灰度图
  * @param multiface in: 是否检测多张人脸

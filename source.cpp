@@ -7,6 +7,9 @@
 // 全局变量，整个程序中数据流的核心，将frame提供给图像处理的单元使用
 Mat frame;
 
+// 数据流中的人脸信息
+DetPar frame_detpar;
+
 // 视频流的传递
 VideoCapture cap;
 

@@ -5,6 +5,9 @@
 
 #include "eyedet.h"
 
+// 数据流中的人脸信息
+extern DetPar frame_detpar;
+
 /**
  * 左右眼的两个级联分类器
  */
@@ -12,105 +15,32 @@ static cv::CascadeClassifier leye_det_g;    // left eye detector
 static cv::CascadeClassifier reye_det_g;    // right eye detector
 
 /**
- * 分类器参数
+ * 检测左右眼是否水平交叉10%，或者左右眼间隔大于left.width
+ * @param  left  in：左眼
+ * @param  right in：右眼
+ * @return
  */
-static const double EYE_SCALE_FACTOR    = 1.2;
-static const int    EYE_MIN_NEIGHBORS   = 3;
-static const int    EYE_DETECTOR_FLAGS  = 0;
-
-/**
- * 前向申明
- */
-static void DetectAllEyes(vec_Rect& leyes, vec_Rect& reyes, const Image& img, const Rect& facerect);
-static void SelectEyes(int &ileft_best, int &iright_best, const vec_Rect &leyes, const vec_Rect &reyes, const Rect &eye_inner_rect);
-static bool IsEyeHorizOk(const Rect& left, const Rect& right);
-static bool VerticalOverlap(const Rect& left, const Rect& right);
-static bool InRect(const Rect& rect, const Rect& enclosing);
-static void RectToImgFrame(double &x, double &y, const Rect &featrect);
-static vec_Rect Detect(const Image &img, cv::CascadeClassifier *cascade, const Rect *searchrect, int minwidth_pixels);
-static void ForceRectIntoImg(Rect &rect, const Image &img);
-static void ForceRectIntoImg(int &ix, int &iy, int &ncols, int &nrows, const Image &img);
-static void DiscountSearchRegion(vec_Rect &feats, Rect &searchrect);
-
-/**
- * 打开两个级联分类器
- * @param datadir 分类器数据所在的地址
- */
-void OpenEyeDetectors(const char* datadir)
+static bool IsEyeHorizOk(const Rect& left, const Rect& right)
 {
-    char left_eye_filename[SLEN] = "haarcascade_mcs_lefteye.xml";
-
-    if (leye_det_g.empty())
-    {
-        char dir[SLEN];
-        strcpy(dir, datadir);
-        ConvertBackslashesToForwardAndStripFinalSlash(dir);
-
-        char path[SLEN];
-        sprintf(path, "%s/%s", dir, left_eye_filename);
-        qDebug("Open %s/%s \n", dir, left_eye_filename);
-
-        if (!leye_det_g.load(path))
-            qDebug("Cannot load %s/%s \n", dir, left_eye_filename);
-    }
-
-    char rigth_eye_filename[SLEN] = "haarcascade_mcs_righteye.xml";
-
-    if (reye_det_g.empty())
-    {
-        char dir[SLEN];
-        strcpy(dir, datadir);
-        ConvertBackslashesToForwardAndStripFinalSlash(dir);
-
-        char path[SLEN];
-        sprintf(path, "%s/%s", dir, rigth_eye_filename);
-        qDebug("Open %s/%s \n", dir, rigth_eye_filename);
-
-        if (!reye_det_g.load(path))
-            qDebug("Cannot load %s/%s \n", dir, rigth_eye_filename);
-    }
+    return left.x + left.width - right .x   <= .1 * left.width &&
+           right.x - (left.x + left.width)  <= left.width; 
 }
 
 /**
- * 使用两个级联分类器检测人眼
- * @param detpar 参数集
- * @param frame  
+ * 检测左右眼是否垂直上交叉
+ * @param  left  in：左眼
+ * @param  right in：右眼
+ * @return
  */
-void DetectEyes(DetPar& detpar, const Mat& img)
+static bool VerticalOverlap(const Rect& left, const Rect& right)
 {
-    // 把人脸的区域勾出来
-    Rect facerect(cvRound(detpar.x - detpar.width/2),
-                  cvRound(detpar.y - detpar.height/2),
-                  cvRound(detpar.width),
-                  cvRound(detpar.height));
+    const int topleft = left.y + left.height;
+    const int topright = left.y + right.height;
 
-    // 初始化人眼的参数
-    detpar.lex = detpar.ley = INVALID;
-    detpar.rex = detpar.rey = INVALID;
-    vec_Rect leyes, reyes;
-    int ileft_best = -1, iright_best = -1;
-    if (!leye_det_g.empty())
-    {
-        // 输出所有预选的左右眼的列表
-        DetectAllEyes(leyes, reyes, img, facerect);
-
-        // 脸上部的小块区域
-        Rect eyesRect;
-        eyesRect.x      += cvRound(.1 * facerect.width);
-        eyesRect.width  += cvRound(.8 * facerect.width);
-        eyesRect.y      += cvRound(.2 * facerect.height);
-        eyesRect.height += cvRound(.28 * facerect.height);
-
-        // 在所有左右眼列表中选取最合适的
-        SelectEyes(ileft_best, iright_best, leyes, reyes, eyesRect);
-
-        // 把人眼框的坐标映射到人脸框
-        if (ileft_best >= 0)
-            RectToImgFrame(detpar.lex, detpar.ley, leyes[ileft_best]);
-
-        if (iright_best >= 0)
-            RectToImgFrame(detpar.rex, detpar.rey, reyes[iright_best]);
-    }
+    return (left.y   >= right.y && left.y   <= right.y + right.height) ||
+           (topleft  >= right.y && topleft  <= right.y + right.height) ||
+           (right.y  >= left.y  && right.y  <= left.y  + left.height)  ||
+           (topright >= left.y  && topright <= left.y  + left.height);
 }
 
 /**
@@ -133,7 +63,7 @@ static void DetectAllEyes(vec_Rect& leyes, vec_Rect& reyes, const Image& img, co
     leftrect.width = MAX(0, leftrect.width);
 
     if (leftrect.width)
-        leyes = Detect(img, &leye_det_g, &leftrect, facerect.width /10);
+        leyes = Detect(img, &leye_det_g, &leftrect, facerect.width/10);
 
     // 对于右脸，选取脸部右边2/3的区域进行检测
     Rect rightrect = facerect;
@@ -143,7 +73,7 @@ static void DetectAllEyes(vec_Rect& leyes, vec_Rect& reyes, const Image& img, co
     rightrect.width = MAX(0, rightrect.width);
 
     if (rightrect.width)
-        reyes = Detect(img, &reye_det_g, &rightrect, facerect.width /10);
+        reyes = Detect(img, &reye_det_g, &rightrect, facerect.width/10);
 }
 
 /**
@@ -238,153 +168,51 @@ static void SelectEyes(int &ileft_best, int &iright_best, const vec_Rect &leyes,
 }
 
 /**
- * 检测左右眼是否水平交叉10%，或者左右眼间隔大于left.width
- * @param  left  in：左眼
- * @param  right in：右眼
- * @return
+ * 使用两个级联分类器检测人眼
+ * @param frame_detpar 参数集
+ * @param frame  
  */
-static bool IsEyeHorizOk(const Rect& left, const Rect& right)
+void DetectEyes(DetPar &frame_detpar, const Mat &img)
 {
-    return left.x + left.width - right .x   <= .1 * left.width &&
-           right.x - (left.x + left.width)  <= left.width; 
-}
+    if (leye_det_g.empty())
+        OpenDetector(&leye_det_g, "haarcascade_mcs_lefteye.xml");
 
-/**
- * 检测左右眼是否垂直上交叉
- * @param  left  in：左眼
- * @param  right in：右眼
- * @return
- */
-static bool VerticalOverlap(const Rect& left, const Rect& right)
-{
-    const int topleft = left.y + left.height;
-    const int topright = left.y + right.height;
+    if (reye_det_g.empty())
+        OpenDetector(&reye_det_g, "haarcascade_mcs_righteye.xml");
 
-    return (left.y   >= right.y && left.y   <= right.y + right.height) ||
-           (topleft  >= right.y && topleft  <= right.y + right.height) ||
-           (right.y  >= left.y  && right.y  <= left.y  + left.height)  ||
-           (topright >= left.y  && topright <= left.y  + left.height);
-}
+    // 把人脸的区域勾出来
+    Rect facerect(cvRound(frame_detpar.x - frame_detpar.width/2),
+                  cvRound(frame_detpar.y - frame_detpar.height/2),
+                  cvRound(frame_detpar.width),
+                  cvRound(frame_detpar.height));
 
-/**
- * rect是否在enclosing中
- * @param  rect      in：
- * @param  enclosing in：
- * @return
- */
-static bool InRect(const Rect& rect, const Rect& enclosing)
-{
-    int x = rect.x + rect.width / 2;
-    int y = rect.y + rect.height / 2;
-
-    return x >= enclosing.x &&
-           x <= enclosing.x + enclosing.width &&
-           y >= enclosing.y &&
-           y <= enclosing.y + enclosing.height;
-}
-
-/**
- * 把人眼的坐标投射到整个脸上
- * @param x        in/out：
- * @param y        in/out：
- * @param featrect in：人脸
- */
-static void RectToImgFrame(double &x, double &y, const Rect &featrect)
-{
-    x = featrect.x + featrect.width / 2;
-    y = featrect.y + featrect.height / 2;
-}
-
-/**
- * 检测人眼的主函数
- * @param  img             in：源图像
- * @param  cascade         in：级联分类器
- * @param  searchrect      in：搜索区域
- * @param  minwidth_pixels in：最小人眼大小
- * @return                 out: 可能人眼的集合
- */
-static vec_Rect Detect(const Image &img, cv::CascadeClassifier *cascade, const Rect *searchrect, int minwidth_pixels)
-{
-    CV_Assert(!cascade->empty());
-
-    // 对searchrect进行处理
-    Rect searchrect1;
-    searchrect1.width = 0;
-
-    if (searchrect)
+    // 初始化人眼的参数
+    frame_detpar.lex = frame_detpar.ley = INVALID;
+    frame_detpar.rex = frame_detpar.rey = INVALID;
+    vec_Rect leyes, reyes;
+    int ileft_best = -1, iright_best = -1;
+    if (!leye_det_g.empty())
     {
-        searchrect1 = *searchrect;
-        ForceRectIntoImg(searchrect1, img);
-        if (searchrect1.height == 0)
-            searchrect1.width = 0;
-    }
-    Image roi(img, searchrect1.width? searchrect1 : Rect(0, 0, img.cols, img.rows));
+        // 输出所有预选的左右眼的列表
+        DetectAllEyes(leyes, reyes, img, facerect);
 
-    // 设置最大的人脸数量
-    static const int MAX_NFACES_IN_IMG = int(1e4);
-    vec_Rect feats(MAX_NFACES_IN_IMG);
+        // 脸上部的小块区域
+        Rect eyesRect;
+        eyesRect.x      += cvRound(.1 * facerect.width);
+        eyesRect.width  += cvRound(.8 * facerect.width);
+        eyesRect.y      += cvRound(.2 * facerect.height);
+        eyesRect.height += cvRound(.28 * facerect.height);
 
-    cascade->detectMultiScale(roi, feats, EYE_SCALE_FACTOR, EYE_MIN_NEIGHBORS, EYE_DETECTOR_FLAGS, cvSize(minwidth_pixels, minwidth_pixels));
+        // 在所有左右眼列表中选取最合适的
+        SelectEyes(ileft_best, iright_best, leyes, reyes, eyesRect);
 
-    if (!feats.empty() && searchrect1.width)
-        DiscountSearchRegion(feats, searchrect1);
+        // 把人眼框的坐标映射到人脸框
+        if (ileft_best >= 0)
+            RectToImgFrame(frame_detpar.lex,
+                frame_detpar.ley, leyes[ileft_best]);
 
-    return feats;
-}
-
-/**
- * 强制将Rect映射到Image上
- * @param rect io: 调整前后的Rect
- * @param img  in: 源图像
- */
-static void ForceRectIntoImg(Rect &rect, const Image &img)
-{
-    ForceRectIntoImg(rect.x, rect.y, rect.width, rect.height, img);
-}
-
-/**
- * 强制将Rect映射到Image上
- * @param ix    io: 调整前后Rect的坐标x
- * @param iy    io: 调整前后Rect的坐标y
- * @param ncols io: 调整前后Rect的宽度
- * @param nrows io: 调整前后Rect的高度
- * @param img   in: 源图像
- */
-static void ForceRectIntoImg(int &ix, int &iy, int &ncols, int &nrows, const Image &img)
-{
-    ix = Clamp(ix, 0, img.cols-1);
-
-    int ix1 = ix + ncols;
-    if (ix1 > img.cols)
-        ix1 = img.cols;
-
-    ncols = ix1 - ix;
-
-    CV_Assert(ix >= 0 && ix < img.cols);
-    CV_Assert(ix + ncols >= 0 && ix + ncols <= img.cols);
-
-    iy = Clamp(iy, 0, img.rows-1);
-
-    int iy1 = iy + nrows;
-    if (iy1 > img.rows)
-        iy1 = img.rows;
-
-    nrows = iy1 - iy;
-
-    CV_Assert(iy >= 0 && iy < img.rows);
-    CV_Assert(iy + nrows >= 0 && iy + ncols <= img.rows);
-}
-
-/**
- * 将ROI的坐标映射到源图像中
- * @param feats      io: 人脸参数
- * @param searchrect io: ROI
- */
-static void DiscountSearchRegion(vec_Rect &feats, Rect &searchrect)
-{
-    for (int ifeat = 0; ifeat < NSIZE(feats); ifeat++)
-    {
-        feats[ifeat].x += searchrect.x;
-        feats[ifeat].y += searchrect.y;
+        if (iright_best >= 0)
+            RectToImgFrame(frame_detpar.rex,
+                frame_detpar.rey, reyes[iright_best]);
     }
 }

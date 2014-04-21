@@ -3,43 +3,19 @@
 // Created by Vincent Yan in 2014/03/17
 
 #include "facedet.h"
+#include "haarclassifier.h"
 
 // source中每一帧的Mat
 extern Mat frame;
+
+// 数据流中的人脸信息
+extern DetPar frame_detpar;
 
 // 级联分类器
 static cv::CascadeClassifier facedet_g;
 
 // 图像边缘忽略的比例
 static double BORDER_FRAC = 0.1;
-
-// 以下参数是OpenCV的人脸检测默认参数，效果较好速度较慢
-static const double SCALE_FACTOR    = 1.1;
-static const int    MIN_NEIGHBORS   = 3;
-static const int    DETECTOR_FLAGS  = 0;
-
-/**
- * 打开人脸检测器(Haar)
- * @param datadir   in: 分类器的目录地址
- */
-void OpenFaceDetector_(const char *datadir)
-{
-    char filename[SLEN] = "haarcascade_frontalface_alt2.xml";
-
-    if (facedet_g.empty())
-    {
-        char dir[SLEN];
-        strcpy(dir, datadir);
-        ConvertBackslashesToForwardAndStripFinalSlash(dir);
-
-        char path[SLEN];
-        sprintf(path, "%s/%s", dir, filename);
-        qDebug("Open %s/%s \n", dir, filename);
-
-        if (!facedet_g.load(path))
-            qDebug("Cannot load %s/%s \n", dir, filename);
-    }
-}
 
 /**
  * 在图像周围添加边界
@@ -61,100 +37,6 @@ static Image EmborderImg(int &leftborder, int &topborder, const Image& img)
 }
 
 /**
- * 强制将Rect映射到Image上
- * @param ix    io: 调整前后Rect的坐标x
- * @param iy    io: 调整前后Rect的坐标y
- * @param ncols io: 调整前后Rect的宽度
- * @param nrows io: 调整前后Rect的高度
- * @param img   in: 源图像
- */
-static void ForceRectIntoImg(int &ix, int &iy, int &ncols, int &nrows, const Image &img)
-{
-    ix = Clamp(ix, 0, img.cols-1);
-
-    int ix1 = ix + ncols;
-    if (ix1 > img.cols)
-        ix1 = img.cols;
-
-    ncols = ix1 - ix;
-
-    CV_Assert(ix >= 0 && ix < img.cols);
-    CV_Assert(ix + ncols >= 0 && ix + ncols <= img.cols);
-
-    iy = Clamp(iy, 0, img.rows-1);
-
-    int iy1 = iy + nrows;
-    if (iy1 > img.rows)
-        iy1 = img.rows;
-
-    nrows = iy1 - iy;
-
-    CV_Assert(iy >= 0 && iy < img.rows);
-    CV_Assert(iy + nrows >= 0 && iy + ncols <= img.rows);
-}
-
-/**
- * 强制将Rect映射到Image上
- * @param rect io: 调整前后的Rect
- * @param img  in: 源图像
- */
-static void ForceRectIntoImg(Rect &rect, const Image &img)
-{
-    ForceRectIntoImg(rect.x, rect.y, rect.width, rect.height, img);
-}
-
-/**
- * 将ROI的坐标映射到源图像中
- * @param feats      io: 人脸参数
- * @param searchrect io: ROI
- */
-static void DiscountSearchRegion(vec_Rect &feats, Rect &searchrect)
-{
-    for (int ifeat = 0; ifeat < NSIZE(feats); ifeat++)
-    {
-        feats[ifeat].x += searchrect.x;
-        feats[ifeat].y += searchrect.y;
-    }
-}
-
-/**
- * 将ROI覆盖到IMAGE上，并对其中人脸进行检测
- * @param  img             in: 源图像
- * @param  cascade         in: 分类器
- * @param  searchrect      in: roi
- * @param  minwidth_pixels in: 最小人脸像素
- * @return                 每个人脸一个矩阵
- */
-static vec_Rect Detect(const Image &img, cv::CascadeClassifier *cascade, const Rect *searchrect, int minwidth_pixels)
-{
-    CV_Assert(!cascade->empty());
-
-    // 对searchrect进行处理
-    Rect searchrect1;
-    searchrect1.width = 0;
-
-    if (searchrect)
-    {
-        searchrect1 = *searchrect;
-        ForceRectIntoImg(searchrect1, img);
-        if (searchrect1.height == 0)
-            searchrect1.width = 0;
-    }
-    Image roi(img, searchrect1.width? searchrect1 : Rect(0, 0, img.cols, img.rows));
-
-    // 设置最大的人脸数量
-    static const int MAX_NFACES_IN_IMG = int(1e4);
-    vec_Rect feats(MAX_NFACES_IN_IMG);
-
-    cascade->detectMultiScale(roi, feats, SCALE_FACTOR, MIN_NEIGHBORS, DETECTOR_FLAGS, cvSize(minwidth_pixels, minwidth_pixels));
-
-    if (!feats.empty() && searchrect1.width)
-        DiscountSearchRegion(feats, searchrect1);
-
-    return feats;
-}
-
-/**
  * 使用Haar检测人脸
  * @param detpars  out: 检测出的人脸参数vector
  * @param img      in: 源图像
@@ -166,7 +48,6 @@ static void DetectFaces(vec_DetPar &detpars, const Image &img, int minwidth)
     Image bordered_img(BORDER_FRAC == 0 ? img : EmborderImg(leftborder, topborder, img));
 
     // 直方均衡后的结果比较好，并且直方均衡比较快
-    
     Image equalized_img;
     equalizeHist(bordered_img, equalized_img);
     //cv::namedWindow("Result");
@@ -299,28 +180,28 @@ Mat printFace()
     Mat face, face_mask, dst;
     
     if(facedet_g.empty())
-        OpenFaceDetector_("C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV\\FacialExpression");
+        OpenDetector(&facedet_g, "haarcascade_frontalface_alt2.xml");
 
     if (frame.channels() == 3)
         cvtColor(frame, frame, CV_BGR2GRAY);
 
-    vector<DetPar> vec_detpar = DetectFaces_(frame, false, 30);
-    DetPar detPar = vec_detpar.at(0);
+    vec_DetPar v_detpar = DetectFaces_(frame, false, 30);
+    frame_detpar = v_detpar.at(0);
 
-    if (detPar.x != INVALID)
+    if (frame_detpar.x != INVALID)
     {
         double width = static_cast<double>(frame.cols);
         double height = static_cast<double>(frame.rows);
-        double topleft_x = cv::max(cv::min(width, detPar.x-detPar.width/2), 0.0);
-        double topleft_y = cv::max(cv::min(height, detPar.y-detPar.height/2), 0.0);
-        double buttomright_x = cv::max(cv::min(width, detPar.x+detPar.width/2), 0.0);
-        double buttomright_y = cv::max(cv::min(height, detPar.y+detPar.height/2), 0.0);
+        double topleft_x = cv::max(cv::min(width, frame_detpar.x-frame_detpar.width/2), 0.0);
+        double topleft_y = cv::max(cv::min(height, frame_detpar.y-frame_detpar.height/2), 0.0);
+        double buttomright_x = cv::max(cv::min(width, frame_detpar.x+frame_detpar.width/2), 0.0);
+        double buttomright_y = cv::max(cv::min(height, frame_detpar.y+frame_detpar.height/2), 0.0);
         Point topleft = Point(topleft_x, topleft_y);
         Point bottomright = Point(buttomright_x, buttomright_y);
         face = Mat(frame, Rect(topleft, bottomright));
         face.copyTo(face_mask);
         face_mask.setTo(0);
-        ellipse(face_mask, Point(detPar.width/2, detPar.height/2), Size(detPar.width/2.4, detPar.height/2.1), 0, 0, 360, Scalar(255, 0, 0), -1);
+        ellipse(face_mask, Point(frame_detpar.width/2, frame_detpar.height/2), Size(frame_detpar.width/2.4, frame_detpar.height/2.1), 0, 0, 360, Scalar(255, 0, 0), -1);
         face.copyTo(dst, face_mask);
     }
 

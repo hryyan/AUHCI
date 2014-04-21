@@ -97,7 +97,7 @@ void Preprocessor::generator()
 			foreach(fileinfo, inner_list)
 			{
 				frame = cv::imread(fileinfo.absoluteFilePath().toStdString());
-				imwrite("imread.jpg", frame);
+				// imwrite("imread.jpg", frame);
 				qDebug() << fileinfo.absoluteFilePath();
 				
 				index++;
@@ -151,7 +151,7 @@ void Preprocessor::generator()
 				int top_buttom = face.rows * BORDER_FRAC;
 				int left_right = face.cols * BORDER_FRAC;
 				copyMakeBorder(face, face, 0, top_buttom, 0, left_right, cv::BORDER_REPLICATE);
-				imwrite("imread_makeborder.jpg", face);
+				// imwrite("imread_makeborder.jpg", face);
 
 				for (int i = 0; i < 5; i++) // 尺度
 				{
@@ -253,10 +253,26 @@ void Preprocessor::getL2()
 
 int main()
 {
-	OpenEyeDetectors("C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV_64bit\\FacialExpression_x64\\CacadeClassifier");
+	//OpenEyeDetectors("C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV_64bit\\FacialExpression_x64\\CacadeClassifier");
 	Preprocessor preprocessor(QString("D:\\ck\\cohn-kanade\\cohn-kanade"));
-	preprocessor.generator();
+	//preprocessor.generator();
 
 	preprocessor.getL2();
 	return 0;
 }
+
+//int main()
+//{
+//	frame = cv::imread("test.jpg");
+//	imwrite("imread.jpg", frame);
+//
+//	Mat face = printFace();
+//	imwrite("face.jpg", face);
+//
+//	DetPar detpar;
+//	detpar.x  	 = face.rows / 2; 	detpar.y 	  = face.cols / 2;
+//	detpar.width = face.rows;		detpar.height = face.cols;
+//
+//	DetectMouth(face);
+//	imwrite("after_mouth_det.jpg", face);
+//}

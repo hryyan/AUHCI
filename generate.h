@@ -10,6 +10,7 @@
 #include "source.h"
 #include "facedet.h"
 #include "eyedet.h"
+#include "otherdet.h"
 #include "tinyxml2.h"
 
 class Preprocessor
