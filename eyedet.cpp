@@ -172,7 +172,7 @@ static void SelectEyes(int &ileft_best, int &iright_best, const vec_Rect &leyes,
  * @param frame_detpar 参数集
  * @param frame  
  */
-void DetectEyes(DetPar &frame_detpar, const Mat &img)
+void DetectEyes(const Mat &img)
 {
     if (leye_det_g.empty())
         OpenDetector(&leye_det_g, "haarcascade_mcs_lefteye.xml");

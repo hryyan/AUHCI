@@ -23,7 +23,7 @@ extern DetPar frame_detpar;
  */
 static bool DecreasingWidth(const Rect &rect1, const Rect &rect2)
 {
-    return 1e5 * rect1.width < 1e5 * rect2.width;
+    return 1e5 * rect1.width > 1e5 * rect2.width;
 }
 
 /**
@@ -77,10 +77,13 @@ void DetectMouth(Mat &img)
 
         // 把嘴部框的坐标映射到人脸框
         if (imouth_best >= 0)
+		{
             RectToImgFrame(frame_detpar.mouthx, frame_detpar.mouthy, mouths[imouth_best]);
-     
-		circle(img, Point(mouths[0].x+mouths[0].width/2, mouths[0].y+mouths[0].height/2), 3, Scalar(0, 0, 255));
-        rectangle(img, mouths[0], Scalar(0, 0, 255));
+			circle(img, Point(mouths[0].x+mouths[0].width/2, mouths[0].y+mouths[0].height/2), 1, Scalar(255, 255, 255));
+		}
+    
+        // 画出嘴巴
+  //       rectangle(img, mouths[0], Scalar(0, 0, 255));
     }
 }
 
@@ -106,21 +109,27 @@ void DetectNose(Mat &img)
         // 脸中部的区域
         Rect noses_rect;
         noses_rect.x       += cvRound(.2 * facerect.width);
-        noses_rect.y       += cvRound(.2 * facerect.height);
+        noses_rect.y       += cvRound(.4 * facerect.height);
         noses_rect.width   += cvRound(.6 * facerect.width);
-        noses_rect.height  += cvRound(.6 * facerect.height);
+        noses_rect.height  += cvRound(.4 * facerect.height);
 
         // 输出所有预选的嘴部列表
         noses = Detect(img, &nose_det_g, &noses_rect, facerect.width/10);
+		
+		for (int i = 0; i < noses.size(); i++)
+		{
+			rectangle(img, noses[i], Scalar(255, 255, 255));
+		}
+
 
         // 在所有嘴部中选取最合适的
         SelectMouths(inose_best, &noses, noses_rect);
 
         // 把嘴部框的坐标映射到人脸框
         if (inose_best >= 0)
+		{
             RectToImgFrame(frame_detpar.nosex, frame_detpar.nosey, noses[inose_best]);
-        
-        circle(img, Point(noses[0].x+noses[0].width/2, noses[0].y+noses[0].height/2), 3, Scalar(0, 0, 255));
-        rectangle(img, noses[0], Scalar(0, 0, 255));
+			circle(img, Point(noses[0].x+noses[0].width/2, noses[0].y+noses[0].height/2), 1, Scalar(255, 255, 255));
+		}
     }
 }

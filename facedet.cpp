@@ -192,17 +192,23 @@ Mat printFace()
     {
         double width = static_cast<double>(frame.cols);
         double height = static_cast<double>(frame.rows);
-        double topleft_x = cv::max(cv::min(width, frame_detpar.x-frame_detpar.width/2), 0.0);
-        double topleft_y = cv::max(cv::min(height, frame_detpar.y-frame_detpar.height/2), 0.0);
-        double buttomright_x = cv::max(cv::min(width, frame_detpar.x+frame_detpar.width/2), 0.0);
-        double buttomright_y = cv::max(cv::min(height, frame_detpar.y+frame_detpar.height/2), 0.0);
-        Point topleft = Point(topleft_x, topleft_y);
-        Point bottomright = Point(buttomright_x, buttomright_y);
+        double topleft_x     = cv::max(cv::min(width,   frame_detpar.x-frame_detpar.width/2),   0.0);
+        double topleft_y     = cv::max(cv::min(height,  frame_detpar.y-frame_detpar.height/2),  0.0);
+        double buttomright_x = cv::max(cv::min(width,   frame_detpar.x+frame_detpar.width/2),   0.0);
+        double buttomright_y = cv::max(cv::min(height,  frame_detpar.y+frame_detpar.height/2),  0.0);
+        Point topleft        = Point(topleft_x, topleft_y);
+        Point bottomright    = Point(buttomright_x, buttomright_y);
         face = Mat(frame, Rect(topleft, bottomright));
         face.copyTo(face_mask);
         face_mask.setTo(0);
         ellipse(face_mask, Point(frame_detpar.width/2, frame_detpar.height/2), Size(frame_detpar.width/2.4, frame_detpar.height/2.1), 0, 0, 360, Scalar(255, 0, 0), -1);
         face.copyTo(dst, face_mask);
+
+        // 因为已经把人脸部分抠出来了，所以frame_detpar的参数得再调整
+        frame_detpar.width  = buttomright_x - topleft_x;
+        frame_detpar.height = buttomright_y - topleft_y;
+        frame_detpar.x = frame_detpar.width / 2;
+        frame_detpar.y = frame_detpar.height / 2;
     }
 
     dst.copyTo(frame);

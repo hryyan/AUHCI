@@ -1,4 +1,4 @@
-// Preprocessor.cpp: 用于生成训练样本
+// CK_Preprocessor.cpp: 用于生成训练样本
 // 
 // Created by Vincent Yan in 2014/03/17
 
@@ -6,8 +6,13 @@
 #include "QDir"
 #include "QtDebug"
 
+#define OUTPUT_XML
+
 // source中每一帧的Mat
 extern Mat frame;
+
+// 数据流中的人脸信息
+extern DetPar frame_detpar;
 
 // 卷积核大小，101效果比较好，速度挺慢的，使用GPU加速后，一张Gabor特征10ms（一个虚部或者一个实部）
 const int iSize = 101;
@@ -24,30 +29,80 @@ const double Y_OFFSET = 50.;
 const int RESIZE_WIDTH  = 150;
 const int RESIZE_HEIGHT = 150;
 
+void decode(char* facs, int* AU)
+{
+	char direction = ' ', magnitude = ' ';
+	int a = 0, tmp = 0;
+	for (int i = 0; facs[i] != 0; )
+	{
+		a = 0; tmp = 0;
+		if (facs[i] == 'R')
+		{
+			a += 2000; i++;
+		}
+		else if (facs[i] == 'L')
+		{
+			a += 1000; i++;
+		}
+		else if (facs[i] == 'B')
+		{
+			i++;
+		}
+		sscanf(facs+i, "%d+", &tmp);
+		if (tmp < 10) i++;
+		else i += 2;
+		switch (facs[i])
+		{
+		case 'a': i+=2; a += 100; break;
+		case 'b': i+=2; a += 200; break;
+		case 'c': i+=2; a += 300; break;
+		case 'd': i+=2; a += 400; break;
+		case 'e': i+=2; a += 500; break;
+		case '+': i++; a += 600; break;
+		case 0: i++; a += 600; break;
+		default: break;
+		}
+		a += tmp;
+		AU[a%100] = a / 100;
+	}
+}
+
+FACS_Face getResponseFACS(vector<FACS_Face> vtorff, Information_Face inff)
+{
+	for (vector<FACS_Face>::iterator b = vtorff.begin(); b != vtorff.end(); b++)
+	{
+		if (!b->id.compare(inff.id)  && !b->expression.compare(inff.expression))
+			return *b;
+	}
+	return FACS_Face();
+}
+
 /**
  * ctr，设定数据库的地址
  * @param  src_path 数据库地址
  */
-Preprocessor::Preprocessor(QString p)
+CK_Preprocessor::CK_Preprocessor(QString p)
 {
 	src_path = p;
 	dst_path = QDir::currentPath()+"/AfterPreprocess/";
+	strcpy(positions_information_name, "CK_database_information.xml");
+	strcpy(FACS_information_name, "FACS_information.xml");
 	gabor.Init(Size(iSize, iSize), sqrt(2.0), 1, CV_32F);
 }
 
 /**
  * dtr
  */
-Preprocessor::~Preprocessor()
+CK_Preprocessor::~CK_Preprocessor()
 {
 
 }
 
 /**
- * 根据CK数据库的地址得到预处理后的图像
+ * 根据CK数据库的地址得到预处理后的图像，并且根据需求输出人脸信息的XML
  * @param src_path CK数据库的地址
  */
-void Preprocessor::generator()
+void CK_Preprocessor::generator()
 {
 	QFileInfo dirinfo_outter, dirinfo_inner, fileinfo;
 	QFileInfoList middle_list, inner_list;
@@ -58,9 +113,11 @@ void Preprocessor::generator()
 	cv::gpu::GpuMat g_src, g_dst;
 	int index;
 
-	FILE *fp = fopen("CK_database_information.xml", "w+");
+	#ifdef OUTPUT_XML
+	FILE *fp = fopen(positions_information_name, "w+");
 	tinyxml2::XMLPrinter printer(fp);
 	printer.OpenElement("Main");
+	#endif
 
 	QStringList filters;
 	filters << "*.png";
@@ -80,8 +137,11 @@ void Preprocessor::generator()
 		middle_dir.cd(dirinfo_outter.absoluteFilePath());
 		qDebug() << dirinfo_outter.absoluteFilePath();
 		middle_list = middle_dir.entryInfoList();
+
+		#ifdef OUTPUT_XML
 		printer.OpenElement("People");
 		printer.PushAttribute("name", dirinfo_outter.baseName().toStdString().c_str());
+		#endif
 
 		foreach(dirinfo_inner, middle_list)
 		{
@@ -89,8 +149,10 @@ void Preprocessor::generator()
 			qDebug() << dirinfo_inner.absoluteFilePath();
 			inner_list = inner_dir.entryInfoList();
 
+			#ifdef OUTPUT_XML
 			printer.OpenElement("Expression");
 			printer.PushAttribute("class", dirinfo_inner.baseName().toStdString().c_str());
+			#endif
 
 			// 显示这张图片在这个表情中的帧数，从1开始
 			index = 0;
@@ -101,45 +163,70 @@ void Preprocessor::generator()
 				qDebug() << fileinfo.absoluteFilePath();
 				
 				index++;
+				#ifdef OUTPUT_XML
 				printer.OpenElement("Frame");
 				printer.PushAttribute("Num", index);
 				printer.PushAttribute("jpg", fileinfo.baseName().toStdString().c_str());
+				#endif
 
 				// 识别人脸
 				face = printFace();
 				cv::resize(face, face, Size(RESIZE_WIDTH, RESIZE_HEIGHT));
-				tmp_jpg = Mat2QImage(face);
+				frame_detpar.width = RESIZE_WIDTH;				frame_detpar.height = RESIZE_HEIGHT;
+				frame_detpar.x	   = frame_detpar.width / 2;	frame_detpar.y		= frame_detpar.height / 2;
 				filepath = QDir::currentPath()+"/AfterPreprocess/"+store_path+dirinfo_outter.fileName()+"/"+dirinfo_inner.fileName();
 				filename = "/"+fileinfo.baseName()+"face.jpg";
 				qDebug() << filepath;
 
-				// 识别人眼
-				DetPar detPar;
-				detPar.x = face.rows / 2; detPar.y = face.cols / 2;
-				detPar.width = face.rows; detPar.height = face.cols;
-				DetectEyes(detPar, face);
+				// 识别人眼，嘴和鼻尖
+				DetectEyes(face);
+				if (index == 1)
+				{
+					DetectMouth(face);
+					DetectNose(face);
+				}
 
-				printer.OpenElement("Eye_Position");
-				printer.OpenElement("Left");
+				#ifdef OUTPUT_XML 
+				printer.OpenElement("Left_Eye_Position");
 				printer.OpenElement("X");
-				printer.PushText(detPar.lex);
+				printer.PushText(frame_detpar.lex);
 				printer.CloseElement();
 				printer.OpenElement("Y");
-				printer.PushText(detPar.ley);
+				printer.PushText(frame_detpar.ley);
 				printer.CloseElement();
 				printer.CloseElement();
-				printer.OpenElement("Right");
+
+				printer.OpenElement("Right_Eye_Position");
 				printer.OpenElement("X");
-				printer.PushText(detPar.rex);
+				printer.PushText(frame_detpar.rex);
 				printer.CloseElement();
 				printer.OpenElement("Y");
-				printer.PushText(detPar.rey);
+				printer.PushText(frame_detpar.rey);
 				printer.CloseElement();
+				printer.CloseElement();
+				
+				printer.OpenElement("Mouth_Position");
+				printer.OpenElement("X");
+				printer.PushText(frame_detpar.mouthx);
+				printer.CloseElement();
+				printer.OpenElement("Y");
+				printer.PushText(frame_detpar.mouthy);
+				printer.CloseElement();
+				printer.CloseElement();
+
+				printer.OpenElement("Nose_Position");
+				printer.OpenElement("X");
+				printer.PushText(frame_detpar.nosex);
+				printer.CloseElement();
+				printer.OpenElement("Y");
+				printer.PushText(frame_detpar.nosey);
 				printer.CloseElement();
 				printer.CloseElement();
 
 				printer.CloseElement();
+				#endif //OUTPUT_XML
 
+				tmp_jpg = Mat2QImage(face);
 				if (!dir.exists(filepath))
 					dir.mkpath(filepath);
 				bool on = tmp_jpg->save(filepath+filename);
@@ -148,6 +235,7 @@ void Preprocessor::generator()
 				if (on)
 					qDebug("save face OK");
 
+				#ifdef CALCULATE_GABOR
 				int top_buttom = face.rows * BORDER_FRAC;
 				int left_right = face.cols * BORDER_FRAC;
 				copyMakeBorder(face, face, 0, top_buttom, 0, left_right, cv::BORDER_REPLICATE);
@@ -177,18 +265,25 @@ void Preprocessor::generator()
 						delete tmp_jpg;
 					}
 				}
+				#endif
 			}
+			#ifdef OUTPUT_XML 
 			printer.CloseElement();
+			#endif
 		}
+		#ifdef OUTPUT_XML 
 		printer.CloseElement();
+		#endif
 	}
+	#ifdef OUTPUT_XML 
 	printer.CloseElement();
+	#endif
 }
 
 /**
  * 求所有Gabor滤波后数据的L2范数
  */
-void Preprocessor::getL2()
+void CK_Preprocessor::getL2()
 {
 	QFileInfo dirinfo_outter, dirinfo_inner, dirinfo_innest, fileinfo;
 	QFileInfoList middle_list, inner_list, innest_list;
@@ -243,7 +338,8 @@ void Preprocessor::getL2()
 					cv::add(mat_tmp, mat_restore[i], mat_tmp);
 				}
 				cv::pow(mat_tmp, 0.5, mat_tmp);
-				QString p = dirinfo_innest.absoluteFilePath() +"_merged.jpg";
+				cv::normalize(mat_tmp, mat_tmp, 0, 255, CV_MINMAX, CV_8UC1);
+				QString p = dirinfo_innest.absoluteFilePath() +"_merged_normalized.jpg";
 				qDebug() << p;
 				imwrite(p.toStdString(), mat_tmp);
 			}
@@ -251,28 +347,342 @@ void Preprocessor::getL2()
 	}
 }
 
-int main()
+vector<Information_Face> CK_Preprocessor::getInformationFromXML()
 {
-	//OpenEyeDetectors("C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV_64bit\\FacialExpression_x64\\CacadeClassifier");
-	Preprocessor preprocessor(QString("D:\\ck\\cohn-kanade\\cohn-kanade"));
-	//preprocessor.generator();
+	tinyxml2::XMLDocument doc;
+	doc.LoadFile(positions_information_name);
 
-	preprocessor.getL2();
-	return 0;
+	vector<Information_Face> AllPeople;
+
+	tinyxml2::XMLElement *m = doc.RootElement();
+	tinyxml2::XMLElement *people = m->FirstChildElement("People");
+	while (people)
+	{
+		// People
+		Information_Face iof;
+		iof.id = people->Attribute("name");
+		tinyxml2::XMLElement *expression = people->FirstChildElement("Expression");
+		while (expression)
+		{
+			// Expression Class
+			iof.expression = expression->Attribute("class");
+			tinyxml2::XMLElement *frame = expression->FirstChildElement("Frame");
+			while (frame)
+			{
+				// Frame Num
+				iof.frame = atoi(frame->Attribute("Num"));
+				iof.filename = frame->Attribute("jpg");
+				tinyxml2::XMLElement *coords = frame->FirstChildElement("Left_Eye_Position");
+				
+				int t = 0;
+				while (coords)
+				{
+					// Coords
+					Coords coord;
+					tinyxml2::XMLElement *coord_x = coords->FirstChildElement("X");
+					coord.left_eye_x	= atoi(coord_x->GetText());
+					tinyxml2::XMLElement *coord_y = coord_x->NextSiblingElement();
+					coord.left_eye_y	= atoi(coord_y->GetText());
+
+					coords = coords->NextSiblingElement();
+					coord_x = coords->FirstChildElement("X");
+					coord.right_eye_x	= atoi(coord_x->GetText());
+					coord_y = coord_x->NextSiblingElement();
+					coord.right_eye_y	= atoi(coord_y->GetText());
+
+					coords = coords->NextSiblingElement();
+					coord_x = coords->FirstChildElement("X");
+					coord.mouth_x		= atoi(coord_x->GetText());
+					coord_y = coord_x->NextSiblingElement();
+					coord.mouth_y		= atoi(coord_y->GetText());
+
+					coords = coords->NextSiblingElement();
+					coord_x = coords->FirstChildElement("X");
+					coord.nose_x		= atoi(coord_x->GetText());
+					coord_y = coord_x->NextSiblingElement();
+					coord.nose_y		= atoi(coord_y->GetText());
+
+					iof.coord = coord;
+					coords = coords->NextSiblingElement();
+				}
+				frame = frame->NextSiblingElement();
+				if (!frame)
+					iof.final = true;
+				else
+					iof.final = false;
+				AllPeople.push_back(iof);
+			}
+			expression = expression->NextSiblingElement();
+		}
+		people = people->NextSiblingElement();
+	}
+	return AllPeople;
 }
 
-//int main()
-//{
-//	frame = cv::imread("test.jpg");
-//	imwrite("imread.jpg", frame);
-//
-//	Mat face = printFace();
-//	imwrite("face.jpg", face);
-//
-//	DetPar detpar;
-//	detpar.x  	 = face.rows / 2; 	detpar.y 	  = face.cols / 2;
-//	detpar.width = face.rows;		detpar.height = face.cols;
-//
-//	DetectMouth(face);
-//	imwrite("after_mouth_det.jpg", face);
-//}
+/**
+ * 原先的FACS信息由python脚本转换成XML格式
+ * 在本程序中，把这些信息加入到图片信息中
+ */
+vector<FACS_Face> CK_Preprocessor::getFACSInformation()
+{
+	tinyxml2::XMLDocument doc;
+	doc.LoadFile(FACS_information_name);
+
+	vector<FACS_Face> AllFACS;
+
+	tinyxml2::XMLElement *root = doc.RootElement();
+	tinyxml2::XMLElement *subject = root->FirstChildElement("Subject");
+	char facs[100];
+	string id;
+	while (subject)
+	{
+		id = subject->Attribute("Num");
+		tinyxml2::XMLElement *session = subject->FirstChildElement("Session");
+
+		while (session)
+		{
+			FACS_Face facs_face;
+			memset(facs_face.AU, 0, sizeof(facs_face.AU));
+			
+			facs_face.id += 'S';
+			//facs_face.id[0] = 'S';
+			// ID是一个两位数比如10.0
+			if (id[2] == '.')
+			{
+				facs_face.id += '0';
+				facs_face.id += id[0];
+				facs_face.id += id[1];
+			}
+			else
+			{
+				facs_face.id += id[0];
+				facs_face.id += id[1];
+				facs_face.id += id[2];
+			}
+
+			facs_face.expression = session->Attribute("Class");
+			memset(facs, 0, sizeof(facs));
+			strcpy(facs, session->GetText());
+			decode(facs, facs_face.AU);
+			session = session->NextSiblingElement();
+			AllFACS.push_back(facs_face);
+		}
+		subject = subject->NextSiblingElement();
+	}
+	return AllFACS;
+}
+
+// 对每个Information进行检测，1,在范围内，2，是第一张或者最后一张图，若成立，则返回true、
+bool sliceOk(Information_Face info)
+{
+	if ()
+}
+
+void CK_Preprocessor::outputXML(vector<Information_Face> vecInfo, vector<FACS_Face> vecFACS, FACESECTION section, int left, int right, int top, int bottom, int au)
+{
+	// 一些通用的定义
+	vector<Mat> primeMatV;							// 每个sequence的第一张的Slice
+	vector<Mat> finalMatV;							// 每个sequence的最后一张的Slice
+	vector<FACS_Face> finalFACS;					// 每个sequence的AU Label，即最后一张的Slice呈现的AU Label
+	int width = right + left;						// Slice的宽度
+	int height = bottom + top;						// Slice的高度
+	// int leftE_x, leftE_y, rightE_x, rightE_y;		// 左眼和右眼的坐标，检测以眼为中心的AU
+	// int nose_x, nose_y;								// 鼻尖的坐标，检测以鼻尖为中心的AU
+	// int mouse_x, mouse_y;							// 嘴尖的坐标，检测以嘴尖为中心的AU
+	int x_coord, y_coord;
+	int sp = 0;										// 在左右眼的检测AU中，由于需要Flip归一化，但是Label中并没有这个信息，所以需要用Sp来区隔
+
+	// 眼部的一些定义
+	Mat roi, result, img;
+	char srcpath[SLEN], dstpath[SLEN];
+
+	char filename[20];
+	sprintf(filename, "AU_%d.txt", au);
+	// STEP1:根据部位的不同把Slice和AU Label提取出来
+	// 左眼
+	for (vector<Information_Face>::iterator b = vecInfo.begin(); b != vecInfo.end(); b++)
+	{
+		// EYE
+		if (section == EYE)
+		{
+			x_coord = b->coord.left_eye_x;
+			y_coord = b->coord.left_eye_y;
+		}
+		else if (section == NOSE)
+		{
+			x_coord = b->coord.nose_x;
+			y_coord = b->coord.nose_y;
+		}
+		else if (section == MOUTH)
+		{
+			x_coord = b->coord.mouth_x;
+			y_coord = b->coord.mouth_y;
+		}
+		
+		sprintf(srcpath, "C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV_64bit\\FacialExpression_x64\\AfterPreprocess\\%s\\%s\\%s_merged_normalized.jpg", \
+			b->id.c_str(), b->expression.c_str(), b->filename.c_str());
+		// Slice的位置
+		sprintf(dstpath, "Slices\\%s_left.jpg", b->filename.c_str());
+		img = cv::imread(srcpath);
+
+		// 左眼就根据给的坐标就行了
+		if (x_coord != 99999 && y_coord != 99999 && x_coord >= left && x_coord <= RESIZE_WIDTH-right && y_coord >= top && y_coord <= RESIZE_HEIGHT-bottom)
+		{
+			if (b->frame == 1 || b->final)
+			{
+				// Rect r = Rect(Point(x_coord-15, y_coord-40), Point(x_coord+15, y_coord+5));
+				Rect r = Rect(Point(x_coord-left, y_coord-top), Point(x_coord+right, y_coord+bottom));
+
+				roi.create(width, height, CV_8UC1);
+				roi = Mat(img, r).clone();
+				imwrite(dstpath, roi);
+				cv::normalize(roi, roi, 0, 255, CV_MINMAX, CV_8UC1);
+				if (roi.isContinuous())
+				{
+					result = roi.reshape(0, 1);
+					if (b->frame == 1)
+						primeMatV.push_back(result);
+					else
+					{
+						finalMatV.push_back(result);
+						finalFACS.push_back(getResponseFACS(vecFACS, *b));
+					}
+				}
+				else
+					qDebug() << "Not continuous, error";
+			}
+		}
+	}
+
+	// 用于标记左眼与右眼的分割
+	sp = finalMatV.size();
+
+	// 右眼
+	for (vector<Information_Face>::iterator b = vecInfo.begin(); b != vecInfo.end(); b++)
+	{
+		if (section == EYE)
+		{
+			x_coord = b->coord.right_eye_x;
+			y_coord = b->coord.right_eye_y;
+		}
+		else if (section == NOSE)
+		{
+			x_coord = b->coord.nose_x;
+			y_coord = b->coord.nose_y;
+		}
+		else if (section == MOUTH)
+		{
+			x_coord = b->coord.mouth_x;
+			y_coord = b->coord.mouth_y;
+		}
+
+		sprintf(srcpath, "C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV_64bit\\FacialExpression_x64\\AfterPreprocess\\%s\\%s\\%s_merged_normalized.jpg", \
+			b->id.c_str(), b->expression.c_str(), b->filename.c_str());
+		// Slice的位置
+		sprintf(dstpath, "Slices\\%s_right.jpg", b->filename.c_str());
+		img = cv::imread(srcpath);
+
+		// 右眼要flip一下，所以坐标要变换
+		if (x_coord != 99999 && y_coord != 99999 && x_coord >= right && x_coord <= RESIZE_WIDTH-left && y_coord >= top && y_coord <= RESIZE_HEIGHT-bottom)
+		{
+			if (b->frame == 1 || b->final)
+			{
+				// Rect r = Rect(Point(leftE_x-15, leftE_y-40), Point(leftE_x+15, leftE_y+5));
+				Rect r = Rect(Point(x_coord-right, y_coord-top), Point(x_coord+left, y_coord+bottom));
+
+				roi.create(width, height, CV_8UC1);
+				flip(Mat(img, r), img, 1);
+				roi = img.clone();
+				imwrite(dstpath, roi);
+				cv::normalize(roi, roi, 0, 255, CV_MINMAX, CV_8UC1);
+				if (roi.isContinuous())
+				{
+					result = roi.reshape(0, 1);
+					if (b->frame == 1)
+						primeMatV.push_back(result);
+					else
+					{
+						finalMatV.push_back(result);
+						finalFACS.push_back(getResponseFACS(vecFACS, *b));
+					}
+				}
+				else
+					qDebug() << "Not continuous, error";
+			}
+		}
+	}
+
+	FILE* fp = fopen(filename, "w+");
+	for (vector<Mat>::iterator b = primeMatV.begin(); b != primeMatV.end(); b++)
+	{
+		// 无表情的label为0
+		fputs("0 ", fp);
+		char* it = b->ptr<char>(0);
+		for (int i = 0; i < width * height; i++)
+		{
+			char buff_[50];
+			int int_tmp = it[i] + 128;
+			sprintf(buff_, "%d:%d ", i+1, int_tmp);
+			fputs(buff_, fp);
+			if (i == 1000)
+			{
+				fflush(fp);
+			}
+		}
+		fputs("\n", fp);
+		fflush(fp);
+	}
+
+	int i = 0;
+	char label[20];
+	for (vector<Mat>::iterator b = finalMatV.begin(); b != finalMatV.end(); b++, i++)
+	{
+		memset(label, 0, sizeof(label));
+
+		// 左眼
+		if (i < sp)
+		{
+			if (finalFACS.at(i).AU[au] != 0 && finalFACS.at(i).AU[au]/1000!=2)
+			 	strcat(label, "1 ");
+			else
+				strcat(label, "0 ");
+		}
+		// 右眼
+		else
+		{
+			if (finalFACS.at(i).AU[au] != 0 && finalFACS.at(i).AU[au]/1000!=1)
+			 	strcat(label, "1 ");
+			else
+				strcat(label, "0 ");
+		}
+
+		fputs(label, fp);
+		char* it = b->ptr<char>(0);
+		for (int i = 0; i < width * height; i++)
+		{
+			char buff_[50];
+			int int_tmp = it[i] + 128;
+			sprintf(buff_, "%d:%d ", i+1, int_tmp);
+			fputs(buff_, fp);
+			if (i == 1000)
+			{
+				fflush(fp);
+			}
+		}
+		fputs("\n", fp);
+		fflush(fp);
+	}
+	fclose(fp);
+}
+
+int main()
+{
+	CK_Preprocessor CK_preprocessor(QString("D:\\ck\\cohn-kanade\\cohn-kanade"));
+	vector<Information_Face> a = CK_preprocessor.getInformationFromXML();
+	vector<FACS_Face> b = CK_preprocessor.getFACSInformation();
+
+	//CK_preprocessor.outputXML(a, b, EYE, 25, 25, 50, 15);   // AU1、AU2、AU3
+	//CK_preprocessor.outputXML(a, b, EYE, 15, 15, 15, 15);	// AU4、AU5
+	CK_preprocessor.outputXML(a, b, EYE, 20, 20, 10, 50, 7);	// AU6、AU7
+	return 0;
+}
