@@ -472,12 +472,6 @@ vector<FACS_Face> CK_Preprocessor::getFACSInformation()
 	return AllFACS;
 }
 
-// 对每个Information进行检测，1,在范围内，2，是第一张或者最后一张图，若成立，则返回true、
-bool sliceOk(Information_Face info)
-{
-	if ()
-}
-
 void CK_Preprocessor::outputXML(vector<Information_Face> vecInfo, vector<FACS_Face> vecFACS, FACESECTION section, int left, int right, int top, int bottom, int au)
 {
 	// 一些通用的定义
