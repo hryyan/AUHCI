@@ -472,31 +472,60 @@ vector<FACS_Face> CK_Preprocessor::getFACSInformation()
 	return AllFACS;
 }
 
-void CK_Preprocessor::outputXML(vector<Information_Face> vecInfo, vector<FACS_Face> vecFACS, FACESECTION section, int left, int right, int top, int bottom, int au)
+// 对每个Information进行检测，1,在范围内，2，是第一张或者最后一张图，若成立，则返回true、
+bool sliceOk(Information_Face info, int x_coord, int y_coord, int left, int right, int top, int bottom)
 {
-	// 一些通用的定义
-	vector<Mat> primeMatV;							// 每个sequence的第一张的Slice
-	vector<Mat> finalMatV;							// 每个sequence的最后一张的Slice
-	vector<FACS_Face> finalFACS;					// 每个sequence的AU Label，即最后一张的Slice呈现的AU Label
-	int width = right + left;						// Slice的宽度
-	int height = bottom + top;						// Slice的高度
-	// int leftE_x, leftE_y, rightE_x, rightE_y;		// 左眼和右眼的坐标，检测以眼为中心的AU
-	// int nose_x, nose_y;								// 鼻尖的坐标，检测以鼻尖为中心的AU
-	// int mouse_x, mouse_y;							// 嘴尖的坐标，检测以嘴尖为中心的AU
-	int x_coord, y_coord;
-	int sp = 0;										// 在左右眼的检测AU中，由于需要Flip归一化，但是Label中并没有这个信息，所以需要用Sp来区隔
+	// 这是第一张图或者是最后一张图
+	if (info.frame == 1 || info.final)
+		if (x_coord != 99999 && y_coord != 99999 && x_coord >= left && x_coord <= RESIZE_WIDTH-right && y_coord >= top && y_coord <= RESIZE_HEIGHT-bottom)
+				return true;
+	return false;
+}
 
-	// 眼部的一些定义
-	Mat roi, result, img;
+// 如果SliceOK，则把该区域转换为一维，并且根据是否是第一张或者最后一张，push到指定的vector中。
+void outputSliceHelper(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FACS_Face>& finalFACS, Information_Face info, vector<FACS_Face> vecFACS, Mat img, char* dstpath, int x_coord, int y_coord, int left, int right, int top, int bottom, bool flip)
+{
+	if (sliceOk(info, x_coord, y_coord, left, right, top, bottom))
+	{
+		Mat roi, result;
+		int width = right + left;						// Slice的宽度
+		int height = bottom + top;						// Slice的高度
+
+		Rect r = Rect(Point(x_coord-left, y_coord-top), Point(x_coord+right, y_coord+bottom));
+
+		roi.create(width, height, CV_8UC1);
+		roi = Mat(img, r).clone();
+		cv::normalize(roi, roi, 0, 255, CV_MINMAX, CV_8UC1);
+		if (roi.isContinuous())
+		{
+			result = roi.reshape(0, 1);
+			if (info.frame == 1)
+			{
+				primeMatV.push_back(result);
+				imwrite(dstpath, roi);
+			}
+			else
+			{
+				finalMatV.push_back(result);
+				finalFACS.push_back(getResponseFACS(vecFACS, info));
+				imwrite(dstpath, roi);
+			}
+		}
+		else
+			qDebug() << "Not continuous, error";
+	}
+}
+
+int outputSlice(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FACS_Face>& finalFACS, vector<Information_Face> vecInfo, vector<FACS_Face> vecFACS, int left, int right, int top, int bottom, FACESECTION section)
+{
 	char srcpath[SLEN], dstpath[SLEN];
+	Mat img;
+	int sp = 0;		// 在左右脸的检测AU中，由于需要Flip归一化，但是Label中并没有这个信息，所以需要用Sp来区隔
 
-	char filename[20];
-	sprintf(filename, "AU_%d.txt", au);
-	// STEP1:根据部位的不同把Slice和AU Label提取出来
-	// 左眼
+	int x_coord, y_coord;
+	// 先对左脸进行Slice
 	for (vector<Information_Face>::iterator b = vecInfo.begin(); b != vecInfo.end(); b++)
 	{
-		// EYE
 		if (section == EYE)
 		{
 			x_coord = b->coord.left_eye_x;
@@ -512,52 +541,28 @@ void CK_Preprocessor::outputXML(vector<Information_Face> vecInfo, vector<FACS_Fa
 			x_coord = b->coord.mouth_x;
 			y_coord = b->coord.mouth_y;
 		}
-		
+
 		sprintf(srcpath, "C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV_64bit\\FacialExpression_x64\\AfterPreprocess\\%s\\%s\\%s_merged_normalized.jpg", \
 			b->id.c_str(), b->expression.c_str(), b->filename.c_str());
 		// Slice的位置
 		sprintf(dstpath, "Slices\\%s_left.jpg", b->filename.c_str());
 		img = cv::imread(srcpath);
-
-		// 左眼就根据给的坐标就行了
-		if (x_coord != 99999 && y_coord != 99999 && x_coord >= left && x_coord <= RESIZE_WIDTH-right && y_coord >= top && y_coord <= RESIZE_HEIGHT-bottom)
-		{
-			if (b->frame == 1 || b->final)
-			{
-				// Rect r = Rect(Point(x_coord-15, y_coord-40), Point(x_coord+15, y_coord+5));
-				Rect r = Rect(Point(x_coord-left, y_coord-top), Point(x_coord+right, y_coord+bottom));
-
-				roi.create(width, height, CV_8UC1);
-				roi = Mat(img, r).clone();
-				imwrite(dstpath, roi);
-				cv::normalize(roi, roi, 0, 255, CV_MINMAX, CV_8UC1);
-				if (roi.isContinuous())
-				{
-					result = roi.reshape(0, 1);
-					if (b->frame == 1)
-						primeMatV.push_back(result);
-					else
-					{
-						finalMatV.push_back(result);
-						finalFACS.push_back(getResponseFACS(vecFACS, *b));
-					}
-				}
-				else
-					qDebug() << "Not continuous, error";
-			}
-		}
+		if (section == EYE)
+			outputSliceHelper(primeMatV, finalMatV, finalFACS, *b, vecFACS, img, dstpath, x_coord, y_coord, left, right, top, bottom, false);
+		else
+			outputSliceHelper(primeMatV, finalMatV, finalFACS, *b, vecFACS, img, dstpath, x_coord, y_coord, left/2, 0, top/2, bottom/2, false);
 	}
 
-	// 用于标记左眼与右眼的分割
+	// 用于标记左脸与右脸的分割
 	sp = finalMatV.size();
 
-	// 右眼
+	// 再对右脸进行Slice
 	for (vector<Information_Face>::iterator b = vecInfo.begin(); b != vecInfo.end(); b++)
 	{
 		if (section == EYE)
 		{
-			x_coord = b->coord.right_eye_x;
-			y_coord = b->coord.right_eye_y;
+			x_coord = b->coord.left_eye_x;
+			y_coord = b->coord.left_eye_y;
 		}
 		else if (section == NOSE)
 		{
@@ -575,36 +580,29 @@ void CK_Preprocessor::outputXML(vector<Information_Face> vecInfo, vector<FACS_Fa
 		// Slice的位置
 		sprintf(dstpath, "Slices\\%s_right.jpg", b->filename.c_str());
 		img = cv::imread(srcpath);
-
-		// 右眼要flip一下，所以坐标要变换
-		if (x_coord != 99999 && y_coord != 99999 && x_coord >= right && x_coord <= RESIZE_WIDTH-left && y_coord >= top && y_coord <= RESIZE_HEIGHT-bottom)
-		{
-			if (b->frame == 1 || b->final)
-			{
-				// Rect r = Rect(Point(leftE_x-15, leftE_y-40), Point(leftE_x+15, leftE_y+5));
-				Rect r = Rect(Point(x_coord-right, y_coord-top), Point(x_coord+left, y_coord+bottom));
-
-				roi.create(width, height, CV_8UC1);
-				flip(Mat(img, r), img, 1);
-				roi = img.clone();
-				imwrite(dstpath, roi);
-				cv::normalize(roi, roi, 0, 255, CV_MINMAX, CV_8UC1);
-				if (roi.isContinuous())
-				{
-					result = roi.reshape(0, 1);
-					if (b->frame == 1)
-						primeMatV.push_back(result);
-					else
-					{
-						finalMatV.push_back(result);
-						finalFACS.push_back(getResponseFACS(vecFACS, *b));
-					}
-				}
-				else
-					qDebug() << "Not continuous, error";
-			}
-		}
+		if (section == EYE)
+			outputSliceHelper(primeMatV, finalMatV, finalFACS, *b, vecFACS, img, dstpath, x_coord, y_coord, left, right, top, bottom, true);
+		else
+			outputSliceHelper(primeMatV, finalMatV, finalFACS, *b, vecFACS, img, dstpath, x_coord, y_coord, left/2, 0, top/2, bottom/2, true);
 	}
+	return sp;
+}
+
+void CK_Preprocessor::outputXML(vector<Information_Face> vecInfo, vector<FACS_Face> vecFACS, FACESECTION section, int left, int right, int top, int bottom, int au)
+{
+	// 一些通用的定义
+	vector<Mat> primeMatV;					// 每个sequence的第一张的Slice
+	vector<Mat> finalMatV;					// 每个sequence的最后一张的Slice
+	vector<FACS_Face> finalFACS;			// 每个sequence的AU Label，即最后一张的Slice呈现的AU Label
+
+	int width = right + left;						// Slice的宽度
+	int height = bottom + top;						// Slice的高度
+
+	char filename[20];
+	sprintf(filename, "AU_%d.txt", au);
+
+	// 对指定区域进行Slice
+	int sp = outputSlice(primeMatV, finalMatV, finalFACS, vecInfo, vecFACS, left, right, top, bottom, section);
 
 	FILE* fp = fopen(filename, "w+");
 	for (vector<Mat>::iterator b = primeMatV.begin(); b != primeMatV.end(); b++)
