@@ -483,7 +483,7 @@ bool sliceOk(Information_Face info, int x_coord, int y_coord, int left, int righ
 }
 
 // 如果SliceOK，则把该区域转换为一维，并且根据是否是第一张或者最后一张，push到指定的vector中。
-void outputSliceHelper(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FACS_Face>& finalFACS, Information_Face info, vector<FACS_Face> vecFACS, Mat img, char* dstpath, int x_coord, int y_coord, int left, int right, int top, int bottom, bool flip)
+void outputSliceHelper(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FACS_Face>& finalFACS, Information_Face info, vector<FACS_Face> vecFACS, Mat img, char* dstpath, int x_coord, int y_coord, int left, int right, int top, int bottom, bool needFlip)
 {
 	if (sliceOk(info, x_coord, y_coord, left, right, top, bottom))
 	{
@@ -494,7 +494,13 @@ void outputSliceHelper(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FA
 		Rect r = Rect(Point(x_coord-left, y_coord-top), Point(x_coord+right, y_coord+bottom));
 
 		roi.create(width, height, CV_8UC1);
-		roi = Mat(img, r).clone();
+		if (!needFlip)
+			roi = Mat(img, r).clone();
+		else
+		{
+			flip(Mat(img, r), img, 1);
+			roi = img.clone();
+		}
 		cv::normalize(roi, roi, 0, 255, CV_MINMAX, CV_8UC1);
 		if (roi.isContinuous())
 		{
@@ -561,8 +567,8 @@ int outputSlice(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FACS_Face
 	{
 		if (section == EYE)
 		{
-			x_coord = b->coord.left_eye_x;
-			y_coord = b->coord.left_eye_y;
+			x_coord = b->coord.right_eye_x;
+			y_coord = b->coord.right_eye_y;
 		}
 		else if (section == NOSE)
 		{
@@ -588,7 +594,7 @@ int outputSlice(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FACS_Face
 	return sp;
 }
 
-void CK_Preprocessor::outputXML(vector<Information_Face> vecInfo, vector<FACS_Face> vecFACS, FACESECTION section, int left, int right, int top, int bottom, int au)
+void CK_Preprocessor::outputTxt(vector<Information_Face> vecInfo, vector<FACS_Face> vecFACS, FACESECTION section, int left, int right, int top, int bottom, int au)
 {
 	// 一些通用的定义
 	vector<Mat> primeMatV;					// 每个sequence的第一张的Slice
@@ -673,8 +679,8 @@ int main()
 	vector<Information_Face> a = CK_preprocessor.getInformationFromXML();
 	vector<FACS_Face> b = CK_preprocessor.getFACSInformation();
 
-	//CK_preprocessor.outputXML(a, b, EYE, 25, 25, 50, 15);   // AU1、AU2、AU3
-	//CK_preprocessor.outputXML(a, b, EYE, 15, 15, 15, 15);	// AU4、AU5
-	CK_preprocessor.outputXML(a, b, EYE, 20, 20, 10, 50, 7);	// AU6、AU7
+	//CK_preprocessor.outputTxt(a, b, EYE, 25, 25, 50, 15);   // AU1、AU2、AU3
+	//CK_preprocessor.outputTxt(a, b, EYE, 15, 15, 15, 15);	// AU4、AU5
+	CK_preprocessor.outputTxt(a, b, EYE, 20, 20, 10, 50, 7);	// AU6、AU7
 	return 0;
 }
