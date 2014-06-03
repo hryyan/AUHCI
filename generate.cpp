@@ -5,8 +5,13 @@
 #include "generate.h"
 #include "QDir"
 #include "QtDebug"
+#include "VO_Features.h"
+#include "VO_LBPFeatures.h"
+#include "ctime"
+#include "iostream"
 
-#define OUTPUT_XML
+//#define OUTPUT_XML
+#define CALCULATE_GABOR
 
 // source中每一帧的Mat
 extern Mat frame;
@@ -22,8 +27,8 @@ const int iSize = 101;
 const double BORDER_FRAC = 1;
 
 // 由于gpu::convolve函数的限制，需要对识别好的人眼进行一个校准
-const double X_OFFSET = 51.;
-const double Y_OFFSET = 50.;
+const double X_OFFSET = 150.;
+const double Y_OFFSET = 150.;
 
 // 把采集到的图像进行缩放，到统一尺寸
 const int RESIZE_WIDTH  = 150;
@@ -67,7 +72,17 @@ void decode(char* facs, int* AU)
 	}
 }
 
-FACS_Face getResponseFACS(vector<FACS_Face> vtorff, Information_Face inff)
+Information_Face* getResponseFrameOne(Information_Face* a, vector<Information_Face>& vecInfo)
+{
+	for (vector<Information_Face>::iterator b = vecInfo.begin(); b != vecInfo.end(); b++)
+	{
+		if (!b->id.compare(a->id)  && !b->expression.compare(a->expression) && b->frame == 1)
+			return &(*b);
+	}
+	return NULL;
+}
+
+FACS_Face getResponseFACS(vector<FACS_Face>& vtorff, Information_Face& inff)
 {
 	for (vector<FACS_Face>::iterator b = vtorff.begin(); b != vtorff.end(); b++)
 	{
@@ -75,6 +90,62 @@ FACS_Face getResponseFACS(vector<FACS_Face> vtorff, Information_Face inff)
 			return *b;
 	}
 	return FACS_Face();
+}
+
+void getOffsetNose(Information_Face* b, int& x, int& y, vector<Information_Face>& vecInfo)
+{
+	if (b->frame == 1)
+	{
+		x = b->coord.nose_x;
+		y = b->coord.nose_y;		
+	}
+	else
+	{
+		if (b->coord.right_eye_x != 99999 &&\
+			b->coord.right_eye_y != 99999 &&\
+			b->coord.left_eye_x  != 99999 &&\
+			b->coord.left_eye_y  != 99999)
+		{
+			Information_Face* info = getResponseFrameOne(b, vecInfo);
+			if (info)
+			{
+				int offset_x = (b->coord.right_eye_x - info->coord.right_eye_x\
+							   + b->coord.left_eye_x - info->coord.left_eye_x) / 2;
+				int offset_y = (b->coord.right_eye_y - info->coord.right_eye_y\
+							   + b->coord.left_eye_y - info->coord.left_eye_y) / 2;
+				x = info->coord.nose_x + offset_x;
+				y = info->coord.nose_y + offset_y;
+			}
+		}
+	}
+}
+
+void getOffsetMouth(Information_Face *b, int& x, int& y, vector<Information_Face>& vecInfo)
+{
+	if (b->frame == 1)
+	{
+		x = b->coord.mouth_x;
+		y = b->coord.mouth_y;		
+	}
+	else
+	{
+		if (b->coord.right_eye_x != 99999 &&\
+			b->coord.right_eye_y != 99999 &&\
+			b->coord.left_eye_x  != 99999 &&\
+			b->coord.left_eye_y  != 99999)
+		{
+			Information_Face* info = getResponseFrameOne(b, vecInfo);
+			if (info)
+			{
+				int offset_x = (b->coord.right_eye_x - info->coord.right_eye_x\
+							   + b->coord.left_eye_x - info->coord.left_eye_x) / 2;
+				int offset_y = (b->coord.right_eye_y - info->coord.right_eye_y\
+							   + b->coord.left_eye_y - info->coord.left_eye_y) / 2;
+				x = info->coord.mouth_x + offset_x;
+				y = info->coord.mouth_y + offset_y;
+			}
+		}
+	}
 }
 
 /**
@@ -87,7 +158,8 @@ CK_Preprocessor::CK_Preprocessor(QString p)
 	dst_path = QDir::currentPath()+"/AfterPreprocess/";
 	strcpy(positions_information_name, "CK_database_information.xml");
 	strcpy(FACS_information_name, "FACS_information.xml");
-	gabor.Init(Size(iSize, iSize), sqrt(2.0), 1, CV_32F);
+	//gabor.Init(Size(iSize, iSize), sqrt(2.0), 1, CV_32F);
+	gabor.Init(Size(iSize, iSize), CV_PI*2, 1, CV_32F);
 }
 
 /**
@@ -174,7 +246,7 @@ void CK_Preprocessor::generator()
 				cv::resize(face, face, Size(RESIZE_WIDTH, RESIZE_HEIGHT));
 				frame_detpar.width = RESIZE_WIDTH;				frame_detpar.height = RESIZE_HEIGHT;
 				frame_detpar.x	   = frame_detpar.width / 2;	frame_detpar.y		= frame_detpar.height / 2;
-				filepath = QDir::currentPath()+"/AfterPreprocess/"+store_path+dirinfo_outter.fileName()+"/"+dirinfo_inner.fileName();
+				filepath = dst_path+store_path+dirinfo_outter.fileName()+"/"+dirinfo_inner.fileName();
 				filename = "/"+fileinfo.baseName()+"face.jpg";
 				qDebug() << filepath;
 
@@ -254,9 +326,9 @@ void CK_Preprocessor::generator()
 
 						// End: 衡量时间性能的QTime
 						QTime time2 = QTime::currentTime();
-						//qDebug() << time1.msecsTo(time2);
+						qDebug() << time1.msecsTo(time2);
 
-						filepath = QDir::currentPath()+"/AfterPreprocess/"+store_path+dirinfo_outter.fileName()+"/"+dirinfo_inner.fileName()+"/"+fileinfo.baseName();
+						filepath = dst_path+store_path+dirinfo_outter.fileName()+"/"+dirinfo_inner.fileName()+"/"+fileinfo.baseName();
 						filename = QString("gabor_%1_%2.jpg").arg(i).arg(j);
 						qDebug() << filepath; 
 						if (!dir.exists(filepath))
@@ -473,17 +545,17 @@ vector<FACS_Face> CK_Preprocessor::getFACSInformation()
 }
 
 // 对每个Information进行检测，1,在范围内，2，是第一张或者最后一张图，若成立，则返回true、
-bool sliceOk(Information_Face info, int x_coord, int y_coord, int left, int right, int top, int bottom)
+bool sliceOk(Information_Face& info, int x_coord, int y_coord, int left, int right, int top, int bottom)
 {
 	// 这是第一张图或者是最后一张图
 	if (info.frame == 1 || info.final)
 		if (x_coord != 99999 && y_coord != 99999 && x_coord >= left && x_coord <= RESIZE_WIDTH-right && y_coord >= top && y_coord <= RESIZE_HEIGHT-bottom)
-				return true;
+			return true;
 	return false;
 }
 
 // 如果SliceOK，则把该区域转换为一维，并且根据是否是第一张或者最后一张，push到指定的vector中。
-void outputSliceHelper(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FACS_Face>& finalFACS, Information_Face info, vector<FACS_Face> vecFACS, Mat img, char* dstpath, int x_coord, int y_coord, int left, int right, int top, int bottom, bool needFlip)
+void outputSliceHelper(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FACS_Face>& finalFACS, Information_Face& info, vector<FACS_Face>& vecFACS, Mat img, char* dstpath, int x_coord, int y_coord, int left, int right, int top, int bottom, bool needFlip)
 {
 	if (sliceOk(info, x_coord, y_coord, left, right, top, bottom))
 	{
@@ -522,7 +594,7 @@ void outputSliceHelper(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FA
 	}
 }
 
-int outputSlice(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FACS_Face>& finalFACS, vector<Information_Face> vecInfo, vector<FACS_Face> vecFACS, int left, int right, int top, int bottom, FACESECTION section)
+int outputSlice(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FACS_Face>& finalFACS, vector<Information_Face>& vecInfo, vector<FACS_Face>& vecFACS, int left, int right, int top, int bottom, FACESECTION section)
 {
 	char srcpath[SLEN], dstpath[SLEN];
 	Mat img;
@@ -538,15 +610,9 @@ int outputSlice(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FACS_Face
 			y_coord = b->coord.left_eye_y;
 		}
 		else if (section == NOSE)
-		{
-			x_coord = b->coord.nose_x;
-			y_coord = b->coord.nose_y;
-		}
+			getOffsetNose(&(*b), x_coord, y_coord, vecInfo);
 		else if (section == MOUTH)
-		{
-			x_coord = b->coord.mouth_x;
-			y_coord = b->coord.mouth_y;
-		}
+			getOffsetMouth(&(*b), x_coord, y_coord, vecInfo);
 
 		sprintf(srcpath, "C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV_64bit\\FacialExpression_x64\\AfterPreprocess\\%s\\%s\\%s_merged_normalized.jpg", \
 			b->id.c_str(), b->expression.c_str(), b->filename.c_str());
@@ -556,7 +622,7 @@ int outputSlice(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FACS_Face
 		if (section == EYE)
 			outputSliceHelper(primeMatV, finalMatV, finalFACS, *b, vecFACS, img, dstpath, x_coord, y_coord, left, right, top, bottom, false);
 		else
-			outputSliceHelper(primeMatV, finalMatV, finalFACS, *b, vecFACS, img, dstpath, x_coord, y_coord, left/2, 0, top/2, bottom/2, false);
+			outputSliceHelper(primeMatV, finalMatV, finalFACS, *b, vecFACS, img, dstpath, x_coord, y_coord, left, 0, top, bottom, false);
 	}
 
 	// 用于标记左脸与右脸的分割
@@ -571,15 +637,9 @@ int outputSlice(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FACS_Face
 			y_coord = b->coord.right_eye_y;
 		}
 		else if (section == NOSE)
-		{
-			x_coord = b->coord.nose_x;
-			y_coord = b->coord.nose_y;
-		}
+			getOffsetNose(&(*b), x_coord, y_coord, vecInfo);
 		else if (section == MOUTH)
-		{
-			x_coord = b->coord.mouth_x;
-			y_coord = b->coord.mouth_y;
-		}
+			getOffsetMouth(&(*b), x_coord, y_coord, vecInfo);
 
 		sprintf(srcpath, "C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV_64bit\\FacialExpression_x64\\AfterPreprocess\\%s\\%s\\%s_merged_normalized.jpg", \
 			b->id.c_str(), b->expression.c_str(), b->filename.c_str());
@@ -587,9 +647,9 @@ int outputSlice(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FACS_Face
 		sprintf(dstpath, "Slices\\%s_right.jpg", b->filename.c_str());
 		img = cv::imread(srcpath);
 		if (section == EYE)
-			outputSliceHelper(primeMatV, finalMatV, finalFACS, *b, vecFACS, img, dstpath, x_coord, y_coord, left, right, top, bottom, true);
+			outputSliceHelper(primeMatV, finalMatV, finalFACS, *b, vecFACS, img, dstpath, x_coord, y_coord, right, left, top, bottom, true);
 		else
-			outputSliceHelper(primeMatV, finalMatV, finalFACS, *b, vecFACS, img, dstpath, x_coord, y_coord, left/2, 0, top/2, bottom/2, true);
+			outputSliceHelper(primeMatV, finalMatV, finalFACS, *b, vecFACS, img, dstpath, x_coord, y_coord, 0, right, top, bottom, true);
 	}
 	return sp;
 }
@@ -623,9 +683,7 @@ void CK_Preprocessor::outputTxt(vector<Information_Face> vecInfo, vector<FACS_Fa
 			sprintf(buff_, "%d:%d ", i+1, int_tmp);
 			fputs(buff_, fp);
 			if (i == 1000)
-			{
 				fflush(fp);
-			}
 		}
 		fputs("\n", fp);
 		fflush(fp);
@@ -663,9 +721,7 @@ void CK_Preprocessor::outputTxt(vector<Information_Face> vecInfo, vector<FACS_Fa
 			sprintf(buff_, "%d:%d ", i+1, int_tmp);
 			fputs(buff_, fp);
 			if (i == 1000)
-			{
 				fflush(fp);
-			}
 		}
 		fputs("\n", fp);
 		fflush(fp);
@@ -676,11 +732,15 @@ void CK_Preprocessor::outputTxt(vector<Information_Face> vecInfo, vector<FACS_Fa
 int main()
 {
 	CK_Preprocessor CK_preprocessor(QString("D:\\ck\\cohn-kanade\\cohn-kanade"));
-	vector<Information_Face> a = CK_preprocessor.getInformationFromXML();
-	vector<FACS_Face> b = CK_preprocessor.getFACSInformation();
+	CK_preprocessor.generator();
+	//vector<Information_Face> a = CK_preprocessor.getInformationFromXML();
+	//vector<FACS_Face> b = CK_preprocessor.getFACSInformation();
 
 	//CK_preprocessor.outputTxt(a, b, EYE, 25, 25, 50, 15);   // AU1、AU2、AU3
 	//CK_preprocessor.outputTxt(a, b, EYE, 15, 15, 15, 15);	// AU4、AU5
-	CK_preprocessor.outputTxt(a, b, EYE, 20, 20, 10, 50, 7);	// AU6、AU7
+	//CK_preprocessor.outputTxt(a, b, EYE, 20, 20, 10, 50, 7);	// AU6、AU7
+	//CK_preprocessor.outputTxt(a, b, EYE, 0, 30, 15, 15, 9);	// AU9
+	//CK_preprocessor.outputTxt(a, b, MOUTH, 30, 30, 20, 10, 24);	// AU10、AU12、AU15、AU16、AU18、AU20、AU22、AU23、AU24
+
 	return 0;
 }

@@ -262,6 +262,7 @@ Mat Gabor::getFilterRealPart(Mat& src,Mat& real)
     CV_Assert(real.type()==src.type());
     Mat dst;
     Mat kernel;
+	Mat tmp;
     flip(real,kernel,-1);//中心镜面
     //  filter2D(src,dst,CV_32F,kernel,Point(-1,-1),0,BORDER_CONSTANT);
     
@@ -276,6 +277,8 @@ Mat Gabor::getFilterRealPart(Mat& src,Mat& real)
     QTime time4 = QTime::currentTime();
     qDebug() << QString("Gpu: ") << time3.msecsTo(time4) << QString("ms for ImagPart in one frame");
     g_dst.download(dst);
+	normalize(dst, tmp, 255, 0, CV_MINMAX, CV_8UC1);
+	cv::imwrite("gabor_0_0.jpg", tmp);
     
     #else
     
@@ -405,19 +408,19 @@ void printGaborPara()
  			Mat tmp;
  			char p[SLEN];
  			sprintf(p, "real_gabor_kernel_%d_%d.jpg", i, j);
- 			normalize(gabor.gaborRealKernels[i*8+j], tmp, 0, 255, CV_MINMAX, CV_8U);
+ 			normalize(gabor.gaborRealKernels[i*8+j], tmp, 255, 0, CV_MINMAX, CV_8U);
  			imwrite(p, tmp);
 
  			sprintf(p, "imag_gabor_kernel_%d_%d.jpg", i, j);
-			normalize(gabor.gaborImagKernels[i*8+j], tmp, 0, 255, CV_MINMAX, CV_8U);
+			normalize(gabor.gaborImagKernels[i*8+j], tmp, 255, 0, CV_MINMAX, CV_8U);
  			imwrite(p,tmp);
 
  			sprintf(p, "magnitude_%d_%d.jpg", i, j);
-			normalize(gabor.getMagnitude(gabor.gaborRealKernels[i*8+j], gabor.gaborImagKernels[i*8+j]), tmp, 0, 255, CV_MINMAX, CV_8U);
+			normalize(gabor.getMagnitude(gabor.gaborRealKernels[i*8+j], gabor.gaborImagKernels[i*8+j]), tmp, 255, 0, CV_MINMAX, CV_8U);
  			imwrite(p, tmp);
 
  			sprintf(p, "phase_%d_%d.jpg", i, j);
-			normalize(gabor.getPhase(gabor.gaborRealKernels[i*8+j], gabor.gaborImagKernels[i*8+j]), tmp, 0, 255, CV_MINMAX, CV_8U);
+			normalize(gabor.getPhase(gabor.gaborRealKernels[i*8+j], gabor.gaborImagKernels[i*8+j]), tmp, 255, 0, CV_MINMAX, CV_8U);
  			imwrite(p, tmp);
  		}
  	}

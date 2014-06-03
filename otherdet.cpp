@@ -76,12 +76,13 @@ void DetectMouth(Mat &img)
         SelectMouths(imouth_best, &mouths, mouths_rect);
 
         // 把嘴部框的坐标映射到人脸框
+		#ifdef ALLOWPOINT
         if (imouth_best >= 0)
 		{
             RectToImgFrame(frame_detpar.mouthx, frame_detpar.mouthy, mouths[imouth_best]);
 			circle(img, Point(mouths[0].x+mouths[0].width/2, mouths[0].y+mouths[0].height/2), 1, Scalar(255, 255, 255));
 		}
-    
+		#endif
         // 画出嘴巴
   //       rectangle(img, mouths[0], Scalar(0, 0, 255));
     }
@@ -125,11 +126,13 @@ void DetectNose(Mat &img)
         // 在所有嘴部中选取最合适的
         SelectMouths(inose_best, &noses, noses_rect);
 
+		#ifdef ALLOWPOINT
         // 把嘴部框的坐标映射到人脸框
         if (inose_best >= 0)
 		{
             RectToImgFrame(frame_detpar.nosex, frame_detpar.nosey, noses[inose_best]);
 			circle(img, Point(noses[0].x+noses[0].width/2, noses[0].y+noses[0].height/2), 1, Scalar(255, 255, 255));
 		}
+		#endif
     }
 }
