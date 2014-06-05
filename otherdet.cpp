@@ -116,17 +116,16 @@ void DetectNose(Mat &img)
 
         // 输出所有预选的嘴部列表
         noses = Detect(img, &nose_det_g, &noses_rect, facerect.width/10);
-		
+	
+        // 在所有嘴部中选取最合适的
+        SelectMouths(inose_best, &noses, noses_rect);
+
+		#ifdef ALLOWPOINT
 		for (int i = 0; i < noses.size(); i++)
 		{
 			rectangle(img, noses[i], Scalar(255, 255, 255));
 		}
 
-
-        // 在所有嘴部中选取最合适的
-        SelectMouths(inose_best, &noses, noses_rect);
-
-		#ifdef ALLOWPOINT
         // 把嘴部框的坐标映射到人脸框
         if (inose_best >= 0)
 		{

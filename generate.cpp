@@ -5,8 +5,8 @@
 #include "generate.h"
 #include "QDir"
 #include "QtDebug"
-#include "VO_Features.h"
-#include "VO_LBPFeatures.h"
+//#include "VO_Features.h"
+//#include "VO_LBPFeatures.h"
 #include "ctime"
 #include "iostream"
 
@@ -27,8 +27,8 @@ const int iSize = 101;
 const double BORDER_FRAC = 1;
 
 // 由于gpu::convolve函数的限制，需要对识别好的人眼进行一个校准
-const double X_OFFSET = 150.;
-const double Y_OFFSET = 150.;
+const double X_OFFSET = 51.;
+const double Y_OFFSET = 50.;
 
 // 把采集到的图像进行缩放，到统一尺寸
 const int RESIZE_WIDTH  = 150;
@@ -158,8 +158,8 @@ CK_Preprocessor::CK_Preprocessor(QString p)
 	dst_path = QDir::currentPath()+"/AfterPreprocess/";
 	strcpy(positions_information_name, "CK_database_information.xml");
 	strcpy(FACS_information_name, "FACS_information.xml");
-	//gabor.Init(Size(iSize, iSize), sqrt(2.0), 1, CV_32F);
-	gabor.Init(Size(iSize, iSize), CV_PI*2, 1, CV_32F);
+	gabor.Init(Size(iSize, iSize), sqrt(2.0), 1, CV_32F);
+	//gabor.Init(Size(iSize, iSize), CV_PI*2, 1, CV_32F);
 }
 
 /**
@@ -308,9 +308,15 @@ void CK_Preprocessor::generator()
 					qDebug("save face OK");
 
 				#ifdef CALCULATE_GABOR
-				int top_buttom = face.rows * BORDER_FRAC;
-				int left_right = face.cols * BORDER_FRAC;
-				copyMakeBorder(face, face, 0, top_buttom, 0, left_right, cv::BORDER_REPLICATE);
+					#ifdef USE_OPENCV_GPU
+					int top_buttom = face.rows * BORDER_FRAC;
+					int left_right = face.cols * BORDER_FRAC;
+					copyMakeBorder(face, face, 0, top_buttom, 0, left_right, cv::BORDER_REPLICATE);
+					#else
+					int top_buttom = face.rows * BORDER_FRAC * 0.335;
+					int left_right = face.cols * BORDER_FRAC * 0.335;
+					copyMakeBorder(face, face, top_buttom, 0, left_right, 0, cv::BORDER_REPLICATE);
+					#endif
 				// imwrite("imread_makeborder.jpg", face);
 
 				for (int i = 0; i < 5; i++) // 尺度
@@ -319,14 +325,12 @@ void CK_Preprocessor::generator()
 					{
 						// Begin: 衡量时间性能的QTime
 						QTime time1 = QTime::currentTime();
-
 						gabor_result = printGabor_(face, this->gabor, j, i);
-						Mat gabor_cropped = Mat(gabor_result, Rect(Point(150-101+1, 150-101+1), Point(gabor_result.cols, gabor_result.rows)));
-						tmp_jpg = Mat2QImage(gabor_cropped);
-
 						// End: 衡量时间性能的QTime
 						QTime time2 = QTime::currentTime();
 						qDebug() << time1.msecsTo(time2);
+						Mat gabor_cropped = Mat(gabor_result, Rect(Point(150-101+1, 150-101+1), Point(gabor_result.cols, gabor_result.rows)));
+						tmp_jpg = Mat2QImage(gabor_cropped);
 
 						filepath = dst_path+store_path+dirinfo_outter.fileName()+"/"+dirinfo_inner.fileName()+"/"+fileinfo.baseName();
 						filename = QString("gabor_%1_%2.jpg").arg(i).arg(j);

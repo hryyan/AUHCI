@@ -17,6 +17,8 @@ class Gabor
     * ctr
     */
     Gabor();
+
+    ~Gabor();
     
     // 获得虚部的Gabor核
 	Mat getImagGaborKernel(Size ksize, double sigma, double theta, double nu, double gamma=1, int ktype=CV_32F);
@@ -70,7 +72,7 @@ Mat printGabor(Gabor& gabor, int mu, int nu);
 * @param  频率
 * @return
 */
-Mat printGabor_(Mat m, Gabor& gabor, int mu, int nu);
+Mat printGabor_(Mat& m, Gabor& gabor, int mu, int nu);
 
 /**
  * 输出相关参数
