@@ -35,6 +35,30 @@ void OpenDetector(cv::CascadeClassifier *cascade, const char *filename)
 }
 
 /**
+ * 打开gpu_haar分类器
+ * @param cascade  in/out: 具体要打开的分类器的指针
+ * @param filename in: 分类器文件的名字
+ * @param datadir  in: 分类器文件夹的名字
+ */
+void OpenDetector(cv::gpu::CascadeClassifier_GPU *cascade,
+                  const char *filename)
+{
+	if (cascade->empty())
+	{
+		char dir[SLEN];
+		strcpy(dir, haar_classifier_directory);
+		ConvertBackslashesToForwardAndStripFinalSlash(dir);
+
+		char path[SLEN];
+		sprintf(path, "%s/%s", dir, filename);
+		qDebug("Open CascadeClassifier %s \n", path);
+
+		if (!cascade->load(path))
+			qDebug("Cannot load CascadeClassifier %s", path);
+	}
+}
+
+/**
  * rect是否在enclosing中
  * @param  rect      in：
  * @param  enclosing in：
@@ -149,10 +173,62 @@ vec_Rect Detect(const Image &img, cv::CascadeClassifier *cascade, const Rect *se
     static const int MAX_NUMS_IN_IMG = int(1e4);
     vec_Rect feats(MAX_NUMS_IN_IMG);
 
+	QTime time1 = QTime::currentTime();
     cascade->detectMultiScale(roi, feats, SCALE_FACTOR, MIN_NEIGHBORS, DETECTOR_FLAGS, cvSize(minwidth_pixels, minwidth_pixels));
+	QTime time2 = QTime::currentTime();
+	qDebug() << QString("cpu_detectMultiScale: ") << time1.msecsTo(time2) << QString("ms");
 
     if (!feats.empty() && searchrect1.width)
         DiscountSearchRegion(feats, searchrect1);
+
+    return feats;
+}
+
+/**
+ * 将ROI覆盖到IMAGE上，并对其中人脸进行检测
+ * @param  img             in: 源图像
+ * @param  cascade         in: 分类器
+ * @param  searchrect      in: roi
+ * @param  minwidth_pixels in: 最小人脸像素
+ * @return                 每个人脸一个矩阵
+ */
+vec_Rect Detect(const Image &img, cv::gpu::CascadeClassifier_GPU *cascade, const Rect *searchrect, int minwidth_pixels)
+{
+    CV_Assert(!cascade->empty());
+
+    // 对searchrect进行处理
+    Rect searchrect1;
+    searchrect1.width = 0;
+
+    if (searchrect)
+    {
+        searchrect1 = *searchrect;
+        ForceRectIntoImg(searchrect1, img);
+        if (searchrect1.height == 0)
+            searchrect1.width = 0;
+    }
+    Image roi(img, searchrect1.width? searchrect1 : Rect(0, 0, img.cols, img.rows));
+
+	cv::gpu::GpuMat img_gpu(roi);
+	cv::gpu::GpuMat objectsBuf;
+	QTime time1 = QTime::currentTime();
+	cascade->detectMultiScale(img_gpu, objectsBuf, SCALE_FACTOR, MIN_NEIGHBORS, cvSize(minwidth_pixels, minwidth_pixels));
+	QTime time2 = QTime::currentTime();
+	qDebug() << QString("gpu_detectMultiScale: ") << time1.msecsTo(time2) << QString("ms");
+
+    Mat obj_host;
+	objectsBuf.colRange(0, 5).download(obj_host);
+
+	vec_Rect feats;
+	Rect* faces = obj_host.ptr<Rect>();
+	for (int i = 0; i < 5; i++)
+	{
+		if (faces[i].x >= 0 && faces[i].x < roi.cols && faces[i].y >= 0 && faces[i].y < roi.rows)
+			feats.push_back(faces[i]);
+	}
+	
+	if (!feats.empty() && searchrect1.width)
+		DiscountSearchRegion(feats, searchrect1);
 
     return feats;
 }

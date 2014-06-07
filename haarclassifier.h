@@ -17,6 +17,15 @@ void OpenDetector(cv::CascadeClassifier *cascade,
                   const char *filename);
 
 /**
+ * 打开gpu_haar分类器
+ * @param cascade  in/out: 具体要打开的分类器的指针
+ * @param filename in: 分类器文件的名字
+ * @param datadir  in: 分类器文件夹的名字
+ */
+void OpenDetector(cv::gpu::CascadeClassifier_GPU *cascade,
+                  const char *filename);
+
+/**
  * rect是否在enclosing中
  * @param  rect      in：
  * @param  enclosing in：
@@ -72,5 +81,18 @@ vec_Rect Detect(const Image &img,
                 cv::CascadeClassifier *cascade,
                 const Rect *searchrect,
                 int minwidth_pixels);
+
+/**
+ * 将ROI覆盖到IMAGE上，并对其中人脸进行检测
+ * @param  img             in: 源图像
+ * @param  cascade         in: 分类器
+ * @param  searchrect      in: roi
+ * @param  minwidth_pixels in: 最小人脸像素
+ * @return                 每个人脸一个矩阵
+ */
+vec_Rect Detect(const Image &img,
+			    cv::gpu::CascadeClassifier_GPU *cascade,
+				const Rect *searchrect,
+				int minwidth_pixels);
 
 #endif // HAARCLASSIFIER_H

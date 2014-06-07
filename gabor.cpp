@@ -8,7 +8,14 @@
 // source中的每一帧
 extern Mat frame;
 
+Gabor gabor_g;
+
 static const int iSize = 101;
+const double BORDER_FRAC = 1;
+
+// 把采集到的图像进行缩放，到统一尺寸
+const int RESIZE_WIDTH  = 150;
+const int RESIZE_HEIGHT = 150;
 
 float *h_Data, *h_Kernel, *h_ResultGPU;
 float *d_Data, *d_PaddedData, *d_Kernel, *d_PaddedKernel;
@@ -126,33 +133,6 @@ Gabor::~Gabor()
 // 进行初始化
 void Gabor::Init(Size ksize, double sigma, double gamma, int ktype)
 {
-    #ifdef USE_CUDA
-    kernelH = ksize.height;
-    kernelW = ksize.width;
-    kernelY = (ksize.height - 1) / 2;
-    kernelX = (ksize.width - 1) / 2;
-      dataH = 200;
-      dataW = 200;
-       fftH = snapTransformSize(dataH + kernelH - 1);
-       fftW = snapTransformSize(dataW + kernelW - 1);
-
-    h_Data      = (float *)malloc(dataH   * dataW * sizeof(float));
-    h_Kernel    = (float *)malloc(kernelH * kernelW * sizeof(float));
-    h_ResultGPU = (float *)malloc(fftH    * fftW * sizeof(float));
-
-    checkCudaErrors(cudaMalloc((void **)&d_Data,   dataH   * dataW   * sizeof(float)));
-    checkCudaErrors(cudaMalloc((void **)&d_Kernel, kernelH * kernelW * sizeof(float)));
-
-    checkCudaErrors(cudaMalloc((void **)&d_PaddedData,   fftH * fftW * sizeof(float)));
-    checkCudaErrors(cudaMalloc((void **)&d_PaddedKernel, fftH * fftW * sizeof(float)));
-
-    checkCudaErrors(cudaMalloc((void **)&d_DataSpectrum,   fftH * (fftW / 2 + 1) * sizeof(fComplex)));
-    checkCudaErrors(cudaMalloc((void **)&d_KernelSpectrum, fftH * (fftW / 2 + 1) * sizeof(fComplex)));
-
-    checkCudaErrors(cufftPlan2d(&fftPlanFwd, fftH, fftW, CUFFT_R2C));
-    checkCudaErrors(cufftPlan2d(&fftPlanInv, fftH, fftW, CUFFT_C2R));
-
-    #endif
     gaborRealKernels.clear();
     gaborImagKernels.clear();
     double mu[8] = {0, 1, 2, 3, 4, 5, 6, 7};
@@ -167,6 +147,34 @@ void Gabor::Init(Size ksize, double sigma, double gamma, int ktype)
             gaborImagKernels.push_back(getImagGaborKernel(ksize, sigma, mu[j]*CV_PI/8+CV_PI/2, nu[i], gamma, ktype));
         }
     }
+
+#ifdef USE_CUDA
+	kernelH = ksize.height;
+	kernelW = ksize.width;
+	kernelY = (ksize.height - 1) / 2;
+	kernelX = (ksize.width - 1) / 2;
+	dataH = 200;
+	dataW = 200;
+	fftH = snapTransformSize(dataH + kernelH - 1);
+	fftW = snapTransformSize(dataW + kernelW - 1);
+
+	h_Data      = (float *)malloc(dataH   * dataW * sizeof(float));
+	h_Kernel    = (float *)malloc(kernelH * kernelW * sizeof(float));
+	h_ResultGPU = (float *)malloc(fftH    * fftW * sizeof(float));
+
+	checkCudaErrors(cudaMalloc((void **)&d_Data,   dataH   * dataW   * sizeof(float)));
+	checkCudaErrors(cudaMalloc((void **)&d_Kernel, kernelH * kernelW * sizeof(float)));
+
+	checkCudaErrors(cudaMalloc((void **)&d_PaddedData,   fftH * fftW * sizeof(float)));
+	checkCudaErrors(cudaMalloc((void **)&d_PaddedKernel, fftH * fftW * sizeof(float)));
+
+	checkCudaErrors(cudaMalloc((void **)&d_DataSpectrum,   fftH * (fftW / 2 + 1) * sizeof(fComplex)));
+	checkCudaErrors(cudaMalloc((void **)&d_KernelSpectrum, fftH * (fftW / 2 + 1) * sizeof(fComplex)));
+
+	checkCudaErrors(cufftPlan2d(&fftPlanFwd, fftH, fftW, CUFFT_R2C));
+	checkCudaErrors(cufftPlan2d(&fftPlanInv, fftH, fftW, CUFFT_C2R));
+
+#endif
     isInited = true;
 }
 
@@ -478,39 +486,61 @@ Mat Gabor::getFilterImagPart(Mat& src,Mat& imag)
 // 获得实部与虚部
 void Gabor::getFilterRealImagPart(Mat& src,Mat& real,Mat& imag,Mat &outReal,Mat &outImag)
 {
-    outReal=getFilterRealPart(src,real);
-    outImag=getFilterImagPart(src,imag);
+    outReal = getFilterRealPart(src,real);
+    outImag = getFilterImagPart(src,imag);
 }
 
 /**
 * 输出对应相位和方向的Gabor特征的实部与虚部的L2范式
-* @param  方向
-* @param  尺度
 * @return
 */
-Mat printGabor(Gabor& gabor, int mu, int nu)
+Mat printGabor()
 {
-    if (frame.rows == 0 || frame.cols == 0)
-    {
-        return frame;
-    }
-    
-    if (!gabor.isInited)
-    {
-        gabor.Init(Size(iSize, iSize), CV_PI*2, 1, CV_32F);
-    }
-    
-    //imwrite("before normalize.jpg", frame);
-    frame.convertTo(frame, CV_32F);
-    normalize(frame, frame, 1, 0, CV_MINMAX, CV_32F);
-    
-    Mat out_real, out_imag, output;
-    gabor.getFilterRealImagPart(frame, gabor.gaborRealKernels[nu*mu], gabor.gaborImagKernels[nu*mu], out_real, out_imag);
-    
-    magnitude(out_real, out_imag, output);
-    
-    normalize(output, output, 255, 0, CV_MINMAX, CV_8UC1);
-    return output;
+	qDebug("Starting GaborFilter...");
+	if (frame.cols == 0 || frame.rows == 0)
+	{
+		qDebug("shabi");
+		return Mat();
+	}
+	qDebug("rows: %d, cols: %d", frame.rows, frame.cols);
+	Mat feats[40];
+	Mat mat_tmp = frame.clone();
+	cv::resize(mat_tmp, mat_tmp, Size(RESIZE_WIDTH, RESIZE_HEIGHT));
+
+#ifdef USE_OPENCV_GPU
+	int top_buttom = mat_tmp.rows * BORDER_FRAC;
+	int left_right = mat_tmp.cols * BORDER_FRAC;
+	copyMakeBorder(mat_tmp, mat_tmp, 0, top_buttom, 0, left_right, cv::BORDER_REPLICATE);
+#else
+	int top_buttom = mat_tmp.rows * BORDER_FRAC * 0.335;
+	int left_right = mat_tmp.cols * BORDER_FRAC * 0.335;
+	copyMakeBorder(mat_tmp, mat_tmp, top_buttom, 0, left_right, 0, cv::BORDER_REPLICATE);
+#endif
+
+	qDebug("Starting one filter...");
+	int index = 0;
+	for (int i = 0; i < 5; i++) // 尺度
+	{
+		for (int j = 0; j < 8; j++) // 方向
+		{
+			index = i*8+j;
+			feats[index] = printGabor_(mat_tmp, gabor_g, j, i);
+			//feats[index].convertTo(feats[index], CV_32F);
+			cv::pow(feats[index], 2, feats[index]);
+		}
+	}
+
+	qDebug("Starting add...");
+	mat_tmp = feats[0].clone();
+	for (int i = 1; i < 40; ++i)
+		cv::add(mat_tmp, feats[i], mat_tmp);
+
+	qDebug("Starting pow and normalize...");
+	cv::pow(mat_tmp, 0.5, mat_tmp);
+	cv::normalize(mat_tmp, mat_tmp, 0, 255, CV_MINMAX, CV_8UC1);
+	cv::resize(mat_tmp, mat_tmp, Size(RESIZE_WIDTH, RESIZE_HEIGHT));
+	cv::imwrite("out.jpg", mat_tmp);
+	return mat_tmp;
 }
 
 /**
@@ -521,6 +551,7 @@ Mat printGabor(Gabor& gabor, int mu, int nu)
 */
 Mat printGabor_(Mat& m, Gabor& gabor, int mu, int nu)
 {
+	Mat tmp;
 	if (m.rows == 0 || m.cols == 0)
 	{
 		return m;
@@ -528,19 +559,19 @@ Mat printGabor_(Mat& m, Gabor& gabor, int mu, int nu)
 
 	if (!gabor.isInited)
 	{
-		gabor.Init(Size(iSize, iSize), CV_PI*2, 1, CV_32F);
+		gabor.Init(Size(iSize, iSize), sqrt(2.0), 1, CV_32F);
 	}
 
 	////imwrite("before normalize.jpg", m);
-	m.convertTo(m, CV_32F);
-	normalize(m, m, 1, 0, CV_MINMAX, CV_32F);
+	m.convertTo(tmp, CV_32F);
+	normalize(tmp, tmp, 1, 0, CV_MINMAX, CV_32F);
 
 	Mat out_real, out_imag, output;
-	gabor.getFilterRealImagPart(m, gabor.gaborRealKernels[nu*8+mu], gabor.gaborImagKernels[nu*8+mu], out_real, out_imag);
+	gabor.getFilterRealImagPart(tmp, gabor.gaborRealKernels[nu*8+mu], gabor.gaborImagKernels[nu*8+mu], out_real, out_imag);
 
 	magnitude(out_real, out_imag, output);
 
-	normalize(output, output, 255, 0, CV_MINMAX, CV_8UC1);
+	//normalize(output, output, 255, 0, CV_MINMAX, CV_8UC1);
 	return output;
 }
 

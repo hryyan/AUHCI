@@ -155,7 +155,7 @@ void getOffsetMouth(Information_Face *b, int& x, int& y, vector<Information_Face
 CK_Preprocessor::CK_Preprocessor(QString p)
 {
 	src_path = p;
-	dst_path = QDir::currentPath()+"/AfterPreprocess/";
+	dst_path = QDir::currentPath()+"/AfterPreprocess_Pre/";
 	strcpy(positions_information_name, "CK_database_information.xml");
 	strcpy(FACS_information_name, "FACS_information.xml");
 	gabor.Init(Size(iSize, iSize), sqrt(2.0), 1, CV_32F);
@@ -618,7 +618,7 @@ int outputSlice(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FACS_Face
 		else if (section == MOUTH)
 			getOffsetMouth(&(*b), x_coord, y_coord, vecInfo);
 
-		sprintf(srcpath, "C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV_64bit\\FacialExpression_x64\\AfterPreprocess\\%s\\%s\\%s_merged_normalized.jpg", \
+		sprintf(srcpath, "C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV_64bit\\FacialExpression_x64\\AfterPreprocess_Pre\\%s\\%s\\%s_merged_normalized.jpg", \
 			b->id.c_str(), b->expression.c_str(), b->filename.c_str());
 		// Slice的位置
 		sprintf(dstpath, "Slices\\%s_left.jpg", b->filename.c_str());
@@ -645,7 +645,7 @@ int outputSlice(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FACS_Face
 		else if (section == MOUTH)
 			getOffsetMouth(&(*b), x_coord, y_coord, vecInfo);
 
-		sprintf(srcpath, "C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV_64bit\\FacialExpression_x64\\AfterPreprocess\\%s\\%s\\%s_merged_normalized.jpg", \
+		sprintf(srcpath, "C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV_64bit\\FacialExpression_x64\\AfterPreprocess_Pre\\%s\\%s\\%s_merged_normalized.jpg", \
 			b->id.c_str(), b->expression.c_str(), b->filename.c_str());
 		// Slice的位置
 		sprintf(dstpath, "Slices\\%s_right.jpg", b->filename.c_str());
@@ -733,18 +733,18 @@ void CK_Preprocessor::outputTxt(vector<Information_Face> vecInfo, vector<FACS_Fa
 	fclose(fp);
 }
 
-int main()
-{
-	CK_Preprocessor CK_preprocessor(QString("D:\\ck\\cohn-kanade\\cohn-kanade"));
-	CK_preprocessor.generator();
+//int main()
+//{
+//	CK_Preprocessor CK_preprocessor(QString("D:\\ck\\cohn-kanade\\cohn-kanade"));
+//	CK_preprocessor.generator();
 	//vector<Information_Face> a = CK_preprocessor.getInformationFromXML();
 	//vector<FACS_Face> b = CK_preprocessor.getFACSInformation();
 
-	//CK_preprocessor.outputTxt(a, b, EYE, 25, 25, 50, 15);   // AU1、AU2、AU3
+	//CK_preprocessor.outputTxt(a, b, EYE, 15, 15, 35, 10, 1);   // AU1、AU2
 	//CK_preprocessor.outputTxt(a, b, EYE, 15, 15, 15, 15);	// AU4、AU5
 	//CK_preprocessor.outputTxt(a, b, EYE, 20, 20, 10, 50, 7);	// AU6、AU7
 	//CK_preprocessor.outputTxt(a, b, EYE, 0, 30, 15, 15, 9);	// AU9
 	//CK_preprocessor.outputTxt(a, b, MOUTH, 30, 30, 20, 10, 24);	// AU10、AU12、AU15、AU16、AU18、AU20、AU22、AU23、AU24
 
-	return 0;
-}
+//	return 0;
+//}

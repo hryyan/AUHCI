@@ -14,6 +14,9 @@ extern DetPar frame_detpar;
 // 级联分类器
 static cv::CascadeClassifier facedet_g;
 
+// GPU级联分类器
+static cv::gpu::CascadeClassifier_GPU facedet_gpu_g;
+
 // 图像边缘忽略的比例
 static double BORDER_FRAC = 0.1;
 
@@ -58,8 +61,13 @@ static void DetectFaces(vec_DetPar &detpars, const Image &img, int minwidth)
 
     // 设置最小人脸占图片的比例
     int minpix = MAX(100, cvRound(img.cols * minwidth / 100.));
-
-    vec_Rect facerects = Detect(equalized_img, &facedet_g, NULL, minpix);
+	
+#ifdef USE_OPENCV_GPU_DETECTION
+	vec_Rect facerects = Detect(equalized_img, &facedet_gpu_g, NULL, minpix);
+#else
+	vec_Rect facerects = Detect(equalized_img, &facedet_g, NULL, minpix);
+#endif//USE_OPENCV_GPU_DETECTION
+    
 
     // 把检测到的人脸参数复制到人脸的参数Vector中
     
@@ -150,6 +158,7 @@ static void DiscardMissizedFaces(vec_DetPar &detpars)
 vector<DetPar> DetectFaces_(const Image &img, bool multiface, int minwidth)
 {
     CV_Assert(!facedet_g.empty());
+	CV_Assert(!facedet_gpu_g.empty());
 
     vector<DetPar> detpars_;
 
@@ -177,16 +186,23 @@ vector<DetPar> DetectFaces_(const Image &img, bool multiface, int minwidth)
  */
 Mat printFace()
 {
+	qDebug("Starting printFace...");
     Mat face, face_mask, dst;
     
     if(facedet_g.empty())
         OpenDetector(&facedet_g, "haarcascade_frontalface_alt2.xml");
 
+	if (facedet_gpu_g.empty())
+		OpenDetector(&facedet_gpu_g, "haarcascade_frontalface_alt2.xml");
+
     if (frame.channels() == 3)
         cvtColor(frame, frame, CV_BGR2GRAY);
 
     vec_DetPar v_detpar = DetectFaces_(frame, false, 30);
-    frame_detpar = v_detpar.at(0);
+	if (!v_detpar.empty())
+		frame_detpar = v_detpar.at(0);
+	else
+		frame_detpar = DetPar();
 
     if (frame_detpar.x != INVALID)
     {

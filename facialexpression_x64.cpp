@@ -98,14 +98,21 @@ void FacialExpression_x64::play()
 void FacialExpression_x64::play_(QLabel* label, Mat (*pf)(void))
 {
     // 因为Mat的大小只有在CV中才能得到，所以Mat到QImage的转换只能在CV中做。在这里有一个指针接收对象，并且在显示后负责将其释放。
-    QImage* tmp = Mat2QImage(pf());
+	Mat img = pf();
+	QImage* tmp = NULL;
+	if (img.cols !=0 && img.rows != 0)
+		tmp = Mat2QImage(img);
     
     if (tmp == NULL)
     qDebug("%s play ERROR", qPrintable(label->objectName()));
     
-    label->setPixmap(QPixmap::fromImage(*tmp));
-    qDebug("%s play OK", qPrintable(label->objectName()));
-    delete tmp;
+	if (tmp != NULL)
+	{
+		label->setPixmap(QPixmap::fromImage(*tmp));
+		delete tmp;
+	}
+	else
+		qDebug("%s play OK", qPrintable(label->objectName()));
 }
 
 /**
@@ -242,7 +249,7 @@ void FacialExpression_x64::play_face()
 */
 void FacialExpression_x64::play_gabor()
 {
-    //lpfv.push_back(pair<QLabel*, pf>(gabor_label, printGabor));
+    lpfv.push_back(pair<QLabel*, pf>(gabor_label, printGabor));
 }
 
 /**

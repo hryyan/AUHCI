@@ -38,9 +38,12 @@ using cv::sqrt;
 
 #include "source.h"
 
-// 是否使用GPU加速
+// 是否使用GPU加速卷积
 #define USE_CUDA
 //#define USE_OPENCV_GPU
+
+// 是否使用目标识别
+//#define USE_OPENCV_GPU_DETECTION
 
 // 定义一些方便使用的类型
 typedef vector<Rect>  vec_Rect;
