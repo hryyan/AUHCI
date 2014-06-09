@@ -1,113 +1,26 @@
 // gabor.cpp: Gabor滤波
 //
-// Created by Vincent Yan in 2014/03/25
+// Modified by Vincent Yan in 2014/06/09
 
 #include "gabor.h"
-#include "conv2d.h"
 
 // source中的每一帧
 extern Mat frame;
 
+// gabor的全局函数，用于printGabor调用
 Gabor gabor_g;
+CUDA_Gabor gabor_cuda_g;
 
-static const int iSize = 101;
+// 默认的核大小
+static const int iSize = 21;
+
+// 滤波前需要进行边界扩充，这个代码以前在generator.cpp中使用过
 const double BORDER_FRAC = 1;
 
 // 把采集到的图像进行缩放，到统一尺寸
 const int RESIZE_WIDTH  = 150;
 const int RESIZE_HEIGHT = 150;
 
-float *h_Data, *h_Kernel, *h_ResultGPU;
-float *d_Data, *d_PaddedData, *d_Kernel, *d_PaddedKernel;
-fComplex *d_DataSpectrum, *d_KernelSpectrum;
-cufftHandle fftPlanFwd, fftPlanInv;
-
-int kernelH;
-int kernelW;
-int kernelY;
-int kernelX;
-int dataH;
-int dataW;
-int fftH;
-int fftW;
-
-Mat conv2d_Cuda(Mat& kernel, Mat& img)
-{
-	StopWatchInterface *hTimer = NULL;
-	sdkCreateTimer(&hTimer);
-    sdkStartTimer(&hTimer);
-    
-	for (int i = 0; i < kernelH; i++)
-	{
-		float *Mi = kernel.ptr<float>(i);
-		for (int j = 0; j < kernelW; j++)
-			h_Kernel[i*kernelW+j] = Mi[j];
-	}
-	
-	for (int i = 0; i < dataH; i++)
-	{
-		float *Mi = img.ptr<float>(i);
-		for (int j = 0; j < dataW; j++)
-			h_Data[i*dataW+j] = Mi[j];
-	}
-
-	checkCudaErrors(cudaMemcpy(d_Kernel, h_Kernel, kernelH * kernelW * sizeof(float), cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(d_Data,   h_Data,   dataH   * dataW *   sizeof(float), cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemset(d_PaddedKernel, 0, fftH * fftW * sizeof(float)));
-	checkCudaErrors(cudaMemset(d_PaddedData,   0, fftH * fftW * sizeof(float)));
-
-	padKernel(
-		d_PaddedKernel,
-		d_Kernel,
-		fftH,
-		fftW,
-		kernelH,
-		kernelW,
-		kernelY,
-		kernelX
-		);
-	padDataClampToBorder(
-		d_PaddedData,
-		d_Data,
-		fftH,
-		fftW,
-		dataH,
-		dataW,
-		kernelH,
-		kernelW,
-		kernelY,
-		kernelX
-		);
-
-	checkCudaErrors(cufftExecR2C(fftPlanFwd, (cufftReal *)d_PaddedKernel, (cufftComplex *)d_KernelSpectrum));
-	checkCudaErrors(cudaDeviceSynchronize());
-	// sdkResetTimer(&hTimer);
-	// sdkStartTimer(&hTimer);
-	checkCudaErrors(cufftExecR2C(fftPlanFwd, (cufftReal *)d_PaddedData, (cufftComplex *)d_DataSpectrum));
-	modulateAndNormalize(d_DataSpectrum, d_KernelSpectrum, fftH, fftW, 1);
-	checkCudaErrors(cufftExecC2R(fftPlanInv, (cufftComplex *)d_DataSpectrum, (cufftReal *)d_PaddedData));
-
-	checkCudaErrors(cudaDeviceSynchronize());
-	checkCudaErrors(cudaMemcpy(h_ResultGPU, d_PaddedData, fftH * fftW * sizeof(float), cudaMemcpyDeviceToHost));
-
-	Mat result = Mat(dataH, dataW, CV_32F);
-	for (int i = 0; i < dataH; i++)
-	{
-		float *Mi = result.ptr<float>(i);
-		for (int j = 0; j < dataW; j++)
-			Mi[j] = h_ResultGPU[i*fftW+j];
-	}
-    sdkStopTimer(&hTimer);
-    double gpuTime = sdkGetTimerValue(&hTimer);
-    qDebug("%f", gpuTime);
-
-	return result;
-}
-
-
-/**
-* ctr
-*/
 Gabor::Gabor()
 {
     isInited = false;
@@ -115,66 +28,25 @@ Gabor::Gabor()
 
 Gabor::~Gabor()
 {
-    checkCudaErrors(cufftDestroy(fftPlanInv));
-    checkCudaErrors(cufftDestroy(fftPlanFwd));
 
-    checkCudaErrors(cudaFree(d_DataSpectrum));
-    checkCudaErrors(cudaFree(d_KernelSpectrum));
-    checkCudaErrors(cudaFree(d_PaddedData));
-    checkCudaErrors(cudaFree(d_PaddedKernel));
-    checkCudaErrors(cudaFree(d_Data));
-    checkCudaErrors(cudaFree(d_Kernel));
-
-    free(h_ResultGPU);
-    free(h_Data);
-    free(h_Kernel);
 }
 
-// 进行初始化
 void Gabor::Init(Size ksize, double sigma, double gamma, int ktype)
 {
     gaborRealKernels.clear();
     gaborImagKernels.clear();
     double mu[8] = {0, 1, 2, 3, 4, 5, 6, 7};
     double nu[5] = {0, 1, 2, 3, 4};
-    
-    for (int i = 0; i < 5; ++i)	// 尺度
+
+    for (int i = 0; i < 5; ++i)
     {
-        for (int j = 0; j < 8; ++j) // 方向
-        {
-			// mu是方向，nu是尺度
-            gaborRealKernels.push_back(getRealGaborKernel(ksize, sigma, mu[j]*CV_PI/8+CV_PI/2, nu[i], gamma, ktype));
-            gaborImagKernels.push_back(getImagGaborKernel(ksize, sigma, mu[j]*CV_PI/8+CV_PI/2, nu[i], gamma, ktype));
-        }
+       for (int j = 0; j < 8; ++j)
+       {
+        gaborRealKernels.push_back(getRealGaborKernel(ksize, sigma, mu[j]*CV_PI/8+CV_PI/2, nu[i], gamma, ktype));
+        gaborImagKernels.push_back(getImagGaborKernel(ksize, sigma, mu[j]*CV_PI/8+CV_PI/2, nu[i], gamma, ktype));
+       } 
     }
 
-#ifdef USE_CUDA
-	kernelH = ksize.height;
-	kernelW = ksize.width;
-	kernelY = (ksize.height - 1) / 2;
-	kernelX = (ksize.width - 1) / 2;
-	dataH = 200;
-	dataW = 200;
-	fftH = snapTransformSize(dataH + kernelH - 1);
-	fftW = snapTransformSize(dataW + kernelW - 1);
-
-	h_Data      = (float *)malloc(dataH   * dataW * sizeof(float));
-	h_Kernel    = (float *)malloc(kernelH * kernelW * sizeof(float));
-	h_ResultGPU = (float *)malloc(fftH    * fftW * sizeof(float));
-
-	checkCudaErrors(cudaMalloc((void **)&d_Data,   dataH   * dataW   * sizeof(float)));
-	checkCudaErrors(cudaMalloc((void **)&d_Kernel, kernelH * kernelW * sizeof(float)));
-
-	checkCudaErrors(cudaMalloc((void **)&d_PaddedData,   fftH * fftW * sizeof(float)));
-	checkCudaErrors(cudaMalloc((void **)&d_PaddedKernel, fftH * fftW * sizeof(float)));
-
-	checkCudaErrors(cudaMalloc((void **)&d_DataSpectrum,   fftH * (fftW / 2 + 1) * sizeof(fComplex)));
-	checkCudaErrors(cudaMalloc((void **)&d_KernelSpectrum, fftH * (fftW / 2 + 1) * sizeof(fComplex)));
-
-	checkCudaErrors(cufftPlan2d(&fftPlanFwd, fftH, fftW, CUFFT_R2C));
-	checkCudaErrors(cufftPlan2d(&fftPlanInv, fftH, fftW, CUFFT_C2R));
-
-#endif
     isInited = true;
 }
 
@@ -397,150 +269,291 @@ Mat Gabor::getPhase(Mat &real, Mat &imag)
     return kernel;
 }
 
-// 获得实部
-Mat Gabor::getFilterRealPart(Mat& src,Mat& real)
+// 获得实部和虚部
+void Gabor::getFilterRealImagPart(Mat &src, Mat &real, Mat &imag, Mat &outReal, Mat &outImag)
 {
-    CV_Assert(real.type()==src.type());
-    Mat dst;
-    Mat kernel;
-
-	#ifdef USE_CUDA
-    QTime time5 = QTime::currentTime();
-	dst = conv2d_Cuda(real, src);
-    QTime time6 = QTime::currentTime();
-    qDebug() << QString("CUDA: ") << time5.msecsTo(time6) << QString("ms for ImagPart in one frame");
-
-	#else
-		flip(real,kernel,-1);//中心镜面
-		//Mat tmp;
-		//  filter2D(src,dst,CV_32F,kernel,Point(-1,-1),0,BORDER_CONSTANT);
-		//normalize(real, tmp, 255, 0, CV_MINMAX, CV_8U);
-		//cv::imwrite("filter.jpg", tmp);
-		#ifdef USE_OPENCV_GPU
-		QTime time3 = QTime::currentTime();
-		cv::gpu::GpuMat g_src(src);
-		cv::gpu::GpuMat g_tmp(kernel);
-		cv::gpu::GpuMat g_dst;
-		
-		cv::gpu::convolve(g_src, g_tmp, g_dst);
-		QTime time4 = QTime::currentTime();
-		qDebug() << QString("Gpu: ") << time3.msecsTo(time4) << QString("ms for ImagPart in one frame");
-		g_dst.download(dst);
-		//normalize(dst, tmp, 255, 0, CV_MINMAX, CV_8UC1);
-		//cv::imwrite("result.jpg", tmp);
-    
-		#else
-
-		QTime time1 = QTime::currentTime();
-		filter2D(src,dst,CV_32F,kernel,Point(-1,-1),0,cv::BORDER_REPLICATE);
-		QTime time2 = QTime::currentTime();
-		qDebug() << QString("Cpu: ") << time1.msecsTo(time2) << QString("ms for ImagPart in one frame");
-
-		#endif
-    
-	#endif
-    return dst;
+    outReal = getFilter(src, real);
+    outImag = getFilter(src, imag);
 }
 
-// 获得虚部
-Mat Gabor::getFilterImagPart(Mat& src,Mat& imag)
+// 获得实部与虚部的L2范数
+void Gabor::getFilterMagnitude(Mat &src, Mat &real, Mat &imag, Mat &output)
 {
-    CV_Assert(imag.type()==src.type());
-    Mat dst;
-    Mat kernel;
-    
-	#ifdef USE_CUDA
-    QTime time5 = QTime::currentTime();
-	dst = conv2d_Cuda(imag, src);
-    QTime time6 = QTime::currentTime();
-    qDebug() << QString("CUDA: ") << time5.msecsTo(time6) << QString("ms for ImagPart in one frame");
-
-	#else
-		flip(imag,kernel,-1);//中心镜面
-		//  filter2D(src,dst,CV_32F,kernel,Point(-1,-1),0,BORDER_CONSTANT);
-		#ifdef USE_OPENCV_GPU
-
-		QTime time3 = QTime::currentTime();
-		cv::gpu::GpuMat g_src(src);
-		cv::gpu::GpuMat g_tmp(kernel);
-		cv::gpu::GpuMat g_dst;
-		
-		cv::gpu::convolve(g_src, g_tmp, g_dst);
-		QTime time4 = QTime::currentTime();
-		qDebug() << QString("Gpu: ") << time3.msecsTo(time4) << QString("ms for ImagPart in one frame");
-		g_dst.download(dst);
-    
-		#else
-    
-		QTime time1 = QTime::currentTime();
-		filter2D(src,dst,CV_32F,kernel,Point(-1,-1),0,cv::BORDER_REPLICATE);
-		QTime time2 = QTime::currentTime();
-		qDebug() << QString("Cpu: ") << time1.msecsTo(time2) << QString("ms for ImagPart in one frame");
-
-		#endif
-	#endif
-    
-    return dst;
+    Mat outReal, outImag;
+    getFilterRealImagPart(src, real, imag, outReal, outImag);
+    magnitude(outReal, outImag, output);
 }
 
-// 获得实部与虚部
-void Gabor::getFilterRealImagPart(Mat& src,Mat& real,Mat& imag,Mat &outReal,Mat &outImag)
+// 调用卷积函数获得结果
+Mat Gabor::getFilter(Mat &src, Mat &ker)
 {
-    outReal = getFilterRealPart(src,real);
-    outImag = getFilterImagPart(src,imag);
-}
+    CV_Assert(ker.type() == src.type());
+    Mat dst, kernel;
+    flip(ker, kernel, -1);
 
-/**
-* 输出对应相位和方向的Gabor特征的实部与虚部的L2范式
-* @return
-*/
-Mat printGabor()
-{
-	qDebug("Starting GaborFilter...");
-	if (frame.cols == 0 || frame.rows == 0)
-	{
-		qDebug("shabi");
-		return Mat();
-	}
-	qDebug("rows: %d, cols: %d", frame.rows, frame.cols);
-	Mat feats[40];
-	Mat mat_tmp = frame.clone();
-	cv::resize(mat_tmp, mat_tmp, Size(RESIZE_WIDTH, RESIZE_HEIGHT));
+    //Mat tmp;
+    //filter2D(src, dst, CV_32F, kernel, Point(-1,-1), 0, BORDER_CONSTANT);
+    //normalize(ker, tmp, 255, 0, CV_MINMAX, CV_8U);
+    //cv::imwrite("filter.jpg", tmp);
+    //normalize(dst, tmp, 255, 0, CV_MINUX, CV_8UC1);
+
+    QTime time1 = QTime::currentTime();
 
 #ifdef USE_OPENCV_GPU
-	int top_buttom = mat_tmp.rows * BORDER_FRAC;
-	int left_right = mat_tmp.cols * BORDER_FRAC;
-	copyMakeBorder(mat_tmp, mat_tmp, 0, top_buttom, 0, left_right, cv::BORDER_REPLICATE);
+    cv::gpu::GpuMat g_src(src);
+    cv::gpu::GpuMat g_kernel(kernel);
+    cv::gpu::GpuMat g_dst;
+
+    cv::gpu::convolue(g_src, g_kernel, g_dst);
+    g_dst.download(dst);
 #else
-	int top_buttom = mat_tmp.rows * BORDER_FRAC * 0.335;
-	int left_right = mat_tmp.cols * BORDER_FRAC * 0.335;
-	copyMakeBorder(mat_tmp, mat_tmp, top_buttom, 0, left_right, 0, cv::BORDER_REPLICATE);
+    filter2D(src, dst, CV_32F, kernel, Point(-1,-1), 0, cv::BORDER_REPLICATE);
 #endif
+    QTime time2 = QTime::currentTime();
+    qDebug() << QString("Gpu: ") << time1.msecsTo(time2) << QString("ms for filter");
 
-	qDebug("Starting one filter...");
-	int index = 0;
-	for (int i = 0; i < 5; i++) // 尺度
-	{
-		for (int j = 0; j < 8; j++) // 方向
-		{
-			index = i*8+j;
-			feats[index] = printGabor_(mat_tmp, gabor_g, j, i);
-			//feats[index].convertTo(feats[index], CV_32F);
-			cv::pow(feats[index], 2, feats[index]);
-		}
-	}
+    return dst;
+}
 
-	qDebug("Starting add...");
-	mat_tmp = feats[0].clone();
-	for (int i = 1; i < 40; ++i)
-		cv::add(mat_tmp, feats[i], mat_tmp);
+CUDA_Gabor::CUDA_Gabor()
+{
 
-	qDebug("Starting pow and normalize...");
-	cv::pow(mat_tmp, 0.5, mat_tmp);
-	cv::normalize(mat_tmp, mat_tmp, 0, 255, CV_MINMAX, CV_8UC1);
-	cv::resize(mat_tmp, mat_tmp, Size(RESIZE_WIDTH, RESIZE_HEIGHT));
-	cv::imwrite("out.jpg", mat_tmp);
-	return mat_tmp;
+}
+
+CUDA_Gabor::~CUDA_Gabor()
+{
+    checkCudaErrors(cudaFree(d_DataSpectrum));
+    checkCudaErrors(cudaFree(d_PaddedData));
+    checkCudaErrors(cudaFree(d_PaddedKernel));
+    checkCudaErrors(cudaFree(d_Data));
+    checkCudaErrors(cudaFree(d_Kernel));
+
+    for (int i = 0; i < 40; i++)
+    {
+        checkCudaErrors(cudaFree(d_VecRealKernelSpectrum[i]));
+        checkCudaErrors(cudaFree(d_VecImagKernelSpectrum[i]));
+    }
+
+    free(h_ResultGPU);
+    free(h_Data);
+    free(h_Kernel);
+}
+
+void CUDA_Gabor::Init(Size ksize, double sigma, double gamma, int ktype)
+{
+    gaborRealKernels.clear();
+    gaborImagKernels.clear();
+    d_VecRealKernelSpectrum.clear();
+    d_VecImagKernelSpectrum.clear();
+    double mu[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+    double nu[5] = {0, 1, 2, 3, 4};
+
+    for (int i = 0; i < 5; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            gaborRealKernels.push_back(getRealGaborKernel(ksize, sigma, mu[j]*CV_PI/8+CV_PI/2, nu[i], gamma, ktype));
+            gaborImagKernels.push_back(getImagGaborKernel(ksize, sigma, mu[j]*CV_PI/8+CV_PI/2, nu[i], gamma, ktype));
+        }
+    }
+    
+    kernelH = ksize.height;
+    kernelW = ksize.width;
+    kernelY = (ksize.height - 1) / 2;
+    kernelX = (ksize.width  - 1) / 2;
+    dataH = 200;
+    dataW = 200;
+    fftH = snapTransformSize(dataH + kernelH - 1);
+    fftW = snapTransformSize(dataW + kernelW - 1);
+
+	qDebug("kernelH: %d, kernelW: %d, kernelY: %d, kernelX: %d, fftH: %d, fftW: %d", kernelH, kernelW, kernelY, kernelX, fftH, fftW);
+
+    h_Data      = (float *)malloc(dataH   * dataW * sizeof(float));
+    h_Kernel    = (float *)malloc(kernelH * kernelW * sizeof(float));
+    h_ResultGPU = (float *)malloc(fftH    * fftW * sizeof(float));
+
+    // GPU中的kernel以及PadderKernel初始化
+    checkCudaErrors(cudaMalloc((void **)&d_Kernel, kernelH * kernelW * sizeof(float)));
+    checkCudaErrors(cudaMalloc((void **)&d_PaddedKernel,   fftH * fftW * sizeof(float)));
+
+    // GPU中的DATA以及PadderData初始化
+    checkCudaErrors(cudaMalloc((void **)&d_Data,   dataH   * dataW   * sizeof(float)));
+    checkCudaErrors(cudaMalloc((void **)&d_PaddedData,   fftH * fftW * sizeof(float)));
+    checkCudaErrors(cudaMalloc((void **)&d_DataSpectrum,   fftH * (fftW / 2 + 1) * sizeof(fComplex)));
+
+    // 对FFT变换初始化
+    checkCudaErrors(cufftPlan2d(&fftPlanFwd, fftH, fftW, CUFFT_R2C));
+    checkCudaErrors(cufftPlan2d(&fftPlanInv, fftH, fftW, CUFFT_C2R));
+
+    // 对每一个kernel计算出一个k_KernelSpectrum来
+    for (int i = 0; i < 5; ++i)
+    {
+        for (int j = 0; j < 8; ++j)
+        {
+            Prepare_GPU_PadderKernel(i*8+j, true);
+            Prepare_GPU_PadderKernel(i*8+j, false);            
+        }
+    }
+    isInited = true;
+}
+
+void CUDA_Gabor::Prepare_GPU_PadderKernel(int index, bool isReal)
+{
+    Mat kernel;
+    if (isReal)
+        kernel = gaborRealKernels[index];
+    else
+        kernel = gaborImagKernels[index];
+
+    // 在CPU中取出指定kernel
+    for (int i = 0; i < kernelH; i++)
+    {
+        float *Mi = kernel.ptr<float>(i);
+        for (int j = 0; j < kernelW; j++)
+            h_Kernel[i*kernelW+j] = Mi[j];
+    }
+
+    checkCudaErrors(cudaMalloc((void **)&d_KernelSpectrum, fftH * (fftW / 2 + 1) * sizeof(fComplex)));
+    checkCudaErrors(cudaMemcpy(d_Kernel, h_Kernel, kernelH * kernelW * sizeof(float), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemset(d_PaddedKernel, 0, fftH * fftW * sizeof(float)));
+
+    // 在GPU中操作PadderKernel
+    padKernel(
+        d_PaddedKernel,
+        d_Kernel,
+        fftH,
+        fftW,
+        kernelH,
+        kernelW,
+        kernelY,
+        kernelX
+        );
+
+    checkCudaErrors(cufftExecR2C(fftPlanFwd, (cufftReal *)d_PaddedKernel, (cufftComplex *)d_KernelSpectrum));
+    checkCudaErrors(cudaDeviceSynchronize());
+
+    if (isReal)
+        d_VecRealKernelSpectrum.push_back(d_KernelSpectrum);
+    else
+        d_VecImagKernelSpectrum.push_back(d_KernelSpectrum);
+}
+
+void CUDA_Gabor::Prepare_GPU_PadderData(Mat &src)
+{
+    for (int i = 0; i < dataH; i++)
+    {
+        float *Mi = src.ptr<float>(i);
+        for (int j = 0; j < dataW; j++)
+            h_Data[i*dataW+j] = Mi[j];
+    }
+
+    checkCudaErrors(cudaMemcpy(d_Data,   h_Data,   dataH   * dataW *   sizeof(float), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemset(d_PaddedData,   0, fftH * fftW * sizeof(float)));
+
+    padDataClampToBorder(
+        d_PaddedData,
+        d_Data,
+        fftH,
+        fftW,
+        dataH,
+        dataW,
+        kernelH,
+        kernelW,
+        kernelY,
+        kernelX
+        );
+
+    checkCudaErrors(cufftExecR2C(fftPlanFwd, (cufftReal *)d_PaddedData, (cufftComplex *)d_DataSpectrum));
+    checkCudaErrors(cudaDeviceSynchronize());
+}
+
+Mat CUDA_Gabor::getFilter(Mat &src, int index, bool isReal)
+{
+    if (!src.empty())
+        Prepare_GPU_PadderData(src);
+
+    StopWatchInterface *hTimer = NULL;
+    sdkCreateTimer(&hTimer);
+    sdkStartTimer(&hTimer);
+
+    if (isReal)
+        modulateAndNormalize(d_DataSpectrum, d_VecRealKernelSpectrum[index], fftH, fftW, 1);
+    else
+        modulateAndNormalize(d_DataSpectrum, d_VecImagKernelSpectrum[index], fftH, fftW, 1);
+    checkCudaErrors(cufftExecC2R(fftPlanInv, (cufftComplex *)d_DataSpectrum, (cufftReal *)d_PaddedData));
+    checkCudaErrors(cudaDeviceSynchronize());
+    checkCudaErrors(cudaMemcpy(h_ResultGPU, d_PaddedData, fftH * fftW * sizeof(float), cudaMemcpyDeviceToHost));
+
+    Mat result = Mat(dataH, dataW, CV_32F);
+    for (int i = 0; i < dataH; i++)
+    {
+        float *Mi = result.ptr<float>(i);
+        for (int j = 0; j < dataW; j++)
+            Mi[j] = h_ResultGPU[i*fftW+j];
+    }
+    sdkStopTimer(&hTimer);
+    double gpuTime = sdkGetTimerValue(&hTimer);
+    qDebug("%f", gpuTime);
+
+    return result;
+}
+
+// 获得实部与虚部的L2范数
+void CUDA_Gabor::getFilterMagnitude(Mat &src, int index, Mat &output)
+{
+    Mat outReal, outImag;
+    outReal = getFilter(src, index, true);
+    outImag = getFilter(src, index, false);
+    magnitude(outReal, outImag, output);
+}
+
+Mat printGabor()
+{
+    qDebug("Starting GaborFilter...");
+    if (frame.cols == 0 || frame.rows == 0)
+    {
+        qDebug("No face detected");
+        return Mat();
+    }
+    qDebug("rows: %d, cols: %d", frame.rows, frame.cols);
+    Mat mat_tmp = frame.clone();
+    cv::resize(mat_tmp, mat_tmp, Size(RESIZE_WIDTH, RESIZE_HEIGHT));
+
+    int top_buttom = mat_tmp.rows * BORDER_FRAC * 0.335;
+    int left_right = mat_tmp.cols * BORDER_FRAC * 0.335;
+    copyMakeBorder(mat_tmp, mat_tmp, top_buttom, 0, left_right, 0, cv::BORDER_REPLICATE);
+
+    mat_tmp.convertTo(mat_tmp, CV_32F);
+    normalize(mat_tmp, mat_tmp, 1, 0, CV_MINMAX, CV_32F);
+    
+    if (!gabor_cuda_g.isInited)
+        gabor_cuda_g.Init(Size(iSize, iSize), sqrt(2.0), 1, CV_32F);
+    gabor_cuda_g.Prepare_GPU_PadderData(mat_tmp);
+
+    Mat feats[40];
+    Mat blank;
+    int index = 0;
+    for (int i = 0; i < 5; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            index = i*8+j;
+            gabor_cuda_g.getFilterMagnitude(blank, index, feats[index]);
+            cv::pow(feats[index], 2, feats[index]);
+        }
+    }
+
+    qDebug("Starting add...");
+    mat_tmp = feats[0].clone();
+    for (int i = 1; i < 40; ++i)
+        cv::add(mat_tmp, feats[i], mat_tmp);
+
+    qDebug("Starting pow and normalize...");
+    cv::pow(mat_tmp, 0.5, mat_tmp);
+    cv::normalize(mat_tmp, mat_tmp, 0, 255, CV_MINMAX, CV_8UC1);
+    cv::resize(mat_tmp, mat_tmp, Size(RESIZE_WIDTH, RESIZE_HEIGHT));
+    cv::imwrite("out.jpg", mat_tmp);
+    return mat_tmp;
 }
 
 /**
@@ -551,58 +564,53 @@ Mat printGabor()
 */
 Mat printGabor_(Mat& m, Gabor& gabor, int mu, int nu)
 {
-	Mat tmp;
-	if (m.rows == 0 || m.cols == 0)
-	{
-		return m;
-	}
+    Mat tmp, output;
+    if (m.rows == 0 || m.cols == 0)
+    {
+        return m;
+    }
 
-	if (!gabor.isInited)
-	{
-		gabor.Init(Size(iSize, iSize), sqrt(2.0), 1, CV_32F);
-	}
+    if (!gabor.isInited)
+    {
+        gabor.Init(Size(iSize, iSize), sqrt(2.0), 1, CV_32F);
+    }
+    m.convertTo(tmp, CV_32F);
+    normalize(tmp, tmp, 1, 0, CV_MINMAX, CV_32F);
 
-	////imwrite("before normalize.jpg", m);
-	m.convertTo(tmp, CV_32F);
-	normalize(tmp, tmp, 1, 0, CV_MINMAX, CV_32F);
+    gabor.getFilterMagnitude(tmp, gabor.gaborRealKernels[nu*8+mu], gabor.gaborImagKernels[nu*8+mu], output);
 
-	Mat out_real, out_imag, output;
-	gabor.getFilterRealImagPart(tmp, gabor.gaborRealKernels[nu*8+mu], gabor.gaborImagKernels[nu*8+mu], out_real, out_imag);
-
-	magnitude(out_real, out_imag, output);
-
-	//normalize(output, output, 255, 0, CV_MINMAX, CV_8UC1);
-	return output;
+    return output;
 }
+
 
 /**
  * 输出相关参数
  */
 void printGaborPara()
  {
- 	Gabor gabor;
- 	gabor.Init(Size(iSize, iSize), sqrt(2.0), 1, CV_32F);
- 	for (int i = 0; i < 5; i++)  // 尺度
- 	{
- 		for (int j = 0; j < 8; j++)  // 方向
- 		{
- 			Mat tmp;
- 			char p[SLEN];
- 			sprintf(p, "real_gabor_kernel_%d_%d.jpg", i, j);
- 			normalize(gabor.gaborRealKernels[i*8+j], tmp, 255, 0, CV_MINMAX, CV_8U);
- 			imwrite(p, tmp);
+    Gabor gabor;
+    gabor.Init(Size(iSize, iSize), sqrt(2.0), 1, CV_32F);
+    for (int i = 0; i < 5; i++)  // 尺度
+    {
+        for (int j = 0; j < 8; j++)  // 方向
+        {
+            Mat tmp;
+            char p[SLEN];
+            sprintf(p, "real_gabor_kernel_%d_%d.jpg", i, j);
+            normalize(gabor.gaborRealKernels[i*8+j], tmp, 255, 0, CV_MINMAX, CV_8U);
+            imwrite(p, tmp);
 
- 			sprintf(p, "imag_gabor_kernel_%d_%d.jpg", i, j);
-			normalize(gabor.gaborImagKernels[i*8+j], tmp, 255, 0, CV_MINMAX, CV_8U);
- 			imwrite(p,tmp);
+            sprintf(p, "imag_gabor_kernel_%d_%d.jpg", i, j);
+            normalize(gabor.gaborImagKernels[i*8+j], tmp, 255, 0, CV_MINMAX, CV_8U);
+            imwrite(p,tmp);
 
- 			sprintf(p, "magnitude_%d_%d.jpg", i, j);
-			normalize(gabor.getMagnitude(gabor.gaborRealKernels[i*8+j], gabor.gaborImagKernels[i*8+j]), tmp, 255, 0, CV_MINMAX, CV_8U);
- 			imwrite(p, tmp);
+            sprintf(p, "magnitude_%d_%d.jpg", i, j);
+            normalize(gabor.getMagnitude(gabor.gaborRealKernels[i*8+j], gabor.gaborImagKernels[i*8+j]), tmp, 255, 0, CV_MINMAX, CV_8U);
+            imwrite(p, tmp);
 
- 			sprintf(p, "phase_%d_%d.jpg", i, j);
-			normalize(gabor.getPhase(gabor.gaborRealKernels[i*8+j], gabor.gaborImagKernels[i*8+j]), tmp, 255, 0, CV_MINMAX, CV_8U);
- 			imwrite(p, tmp);
- 		}
- 	}
+            sprintf(p, "phase_%d_%d.jpg", i, j);
+            normalize(gabor.getPhase(gabor.gaborRealKernels[i*8+j], gabor.gaborImagKernels[i*8+j]), tmp, 255, 0, CV_MINMAX, CV_8U);
+            imwrite(p, tmp);
+        }
+    }
  }
