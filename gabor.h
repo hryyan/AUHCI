@@ -97,11 +97,11 @@ public:
     vector<Mat> gaborImagKernels;
     // 实部核和虚部核的频谱
     vector<fComplex*> d_VecRealKernelSpectrum, d_VecImagKernelSpectrum;
-    fComplex* d_KernelSpectrum, *d_DataSpectrum;
+    fComplex* d_KernelSpectrum, *d_DataSpectrum, *d_StoreSpectrum;
     // CPU端的数据
     float *h_Data, *h_Kernel, *h_ResultGPU;
     // GPU端的数据
-    float *d_Data, *d_PaddedData, *d_Kernel, *d_PaddedKernel;
+    float *d_Data, *d_PaddedData, *d_Kernel, *d_PaddedKernel, *d_Result;
     // FFT变换
     cufftHandle fftPlanFwd, fftPlanInv;
     // 核的数据
@@ -117,7 +117,7 @@ private:
 };
 
 Mat printGabor();
-Mat printGabor_(Mat& m, Gabor& gabor, int mu, int nu);
+Mat printGabor_(Mat& m, int nu, int mu);
 
 /**
  * 输出相关参数

@@ -187,6 +187,7 @@ vector<DetPar> DetectFaces_(const Image &img, bool multiface, int minwidth)
 Mat printFace()
 {
 	qDebug("Starting printFace...");
+	QTime time1 = QTime::currentTime();
     Mat face, face_mask, dst;
     
     if(facedet_g.empty())
@@ -229,5 +230,7 @@ Mat printFace()
 
     dst.copyTo(frame);
     //bilateralFilter(face, face_after_bilateral_filter, 7, 9, 9);
+	QTime time2 = QTime::currentTime();
+	qDebug() << QString("face_detection: ") << time1.msecsTo(time2) << QString("ms");
     return dst;
 }

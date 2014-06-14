@@ -14,6 +14,9 @@ extern DetPar frame_detpar;
 static cv::CascadeClassifier leye_det_g;    // left eye detector
 static cv::CascadeClassifier reye_det_g;    // right eye detector
 
+//static cv::gpu::CascadeClassifier_GPU leye_det_gpu_g;   // left eye gpu detector
+//static cv::gpu::CascadeClassifier_GPU reye_det_gpu_g;   // right eye gpu detector
+
 /**
  * 检测左右眼是否水平交叉10%，或者左右眼间隔大于left.width
  * @param  left  in：左眼
@@ -54,6 +57,8 @@ static void DetectAllEyes(vec_Rect& leyes, vec_Rect& reyes, const Image& img, co
 {
     CV_Assert(!leye_det_g.empty());
     CV_Assert(!reye_det_g.empty());
+    //CV_Assert(!leye_det_gpu_g.empty());
+    //CV_Assert(!reye_det_gpu_g.empty());
 
     // 对于左脸，选取脸部左边2/3的区域进行检测
     int width = facerect.width;
@@ -63,7 +68,13 @@ static void DetectAllEyes(vec_Rect& leyes, vec_Rect& reyes, const Image& img, co
     leftrect.width = MAX(0, leftrect.width);
 
     if (leftrect.width)
+    {
+        //#ifdef USE_OPENCV_GPU_DETECTION
+        //leyes = Detect(img, &leye_det_gpu_g, &leftrect, facerect.width/10);
+        //#else
         leyes = Detect(img, &leye_det_g, &leftrect, facerect.width/10);
+        //#endif
+    }
 
     // 对于右脸，选取脸部右边2/3的区域进行检测
     Rect rightrect = facerect;
@@ -73,7 +84,14 @@ static void DetectAllEyes(vec_Rect& leyes, vec_Rect& reyes, const Image& img, co
     rightrect.width = MAX(0, rightrect.width);
 
     if (rightrect.width)
+    {
+        //#ifdef USE_OPENCV_GPU_DETECTION
+        //reyes = Detect(img, &reye_det_gpu_g, &rightrect, facerect.width/10);
+        //#else
         reyes = Detect(img, &reye_det_g, &rightrect, facerect.width/10);
+        //#endif
+    }
+
 }
 
 /**
@@ -180,6 +198,12 @@ void DetectEyes(const Mat &img)
     if (reye_det_g.empty())
         OpenDetector(&reye_det_g, "haarcascade_mcs_righteye.xml");
 
+    //if (leye_det_gpu_g.empty())
+        //OpenDetector(&leye_det_gpu_g, "haarcascade_mcs_lefteye.xml");
+
+    //if (reye_det_gpu_g.empty())
+        //OpenDetector(&reye_det_gpu_g, "haarcascade_mcs_righteye.xml");
+
     // 把人脸的区域勾出来
     Rect facerect(cvRound(frame_detpar.x - frame_detpar.width/2),
                   cvRound(frame_detpar.y - frame_detpar.height/2),
@@ -191,7 +215,7 @@ void DetectEyes(const Mat &img)
     frame_detpar.rex = frame_detpar.rey = INVALID;
     vec_Rect leyes, reyes;
     int ileft_best = -1, iright_best = -1;
-    if (!leye_det_g.empty())
+    if (!leye_det_g.empty() && !reye_det_g.empty())
     {
         // 输出所有预选的左右眼的列表
         DetectAllEyes(leyes, reyes, img, facerect);

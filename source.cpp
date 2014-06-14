@@ -47,7 +47,7 @@ bool isPicInited(string path)
 {
     frame = cv::imread(path, -1);
     if (frame.rows == 0 || frame.cols == 0)
-    return false;
+        return false;
     return true;
 }
 

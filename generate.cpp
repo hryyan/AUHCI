@@ -11,7 +11,7 @@
 #include "iostream"
 
 //#define OUTPUT_XML
-#define CALCULATE_GABOR
+//#define CALCULATE_GABOR
 
 // source中每一帧的Mat
 extern Mat frame;
@@ -20,7 +20,7 @@ extern Mat frame;
 extern DetPar frame_detpar;
 
 // 卷积核大小，101效果比较好，速度挺慢的，使用GPU加速后，一张Gabor特征10ms（一个虚部或者一个实部）
-const int iSize = 101;
+const int iSize = 21;
 
 // 由于gpu::convolve函数的限制（默认会裁剪图像），所以需要在右边和下边添加边框
 // http://code.opencv.org/issues/1639
@@ -158,7 +158,7 @@ CK_Preprocessor::CK_Preprocessor(QString p)
 	dst_path = QDir::currentPath()+"/AfterPreprocess_Pre/";
 	strcpy(positions_information_name, "CK_database_information.xml");
 	strcpy(FACS_information_name, "FACS_information.xml");
-	gabor.Init(Size(iSize, iSize), sqrt(2.0), 1, CV_32F);
+	//gabor.Init(Size(iSize, iSize), sqrt(2.0), 1, CV_32F);
 	//gabor.Init(Size(iSize, iSize), CV_PI*2, 1, CV_32F);
 }
 
@@ -248,7 +248,7 @@ void CK_Preprocessor::generator()
 				frame_detpar.x	   = frame_detpar.width / 2;	frame_detpar.y		= frame_detpar.height / 2;
 				filepath = dst_path+store_path+dirinfo_outter.fileName()+"/"+dirinfo_inner.fileName();
 				filename = "/"+fileinfo.baseName()+"face.jpg";
-				qDebug() << filepath;
+				qDebug() << filename;
 
 				// 识别人眼，嘴和鼻尖
 				DetectEyes(face);
@@ -298,26 +298,28 @@ void CK_Preprocessor::generator()
 				printer.CloseElement();
 				#endif //OUTPUT_XML
 
-				tmp_jpg = Mat2QImage(face);
-				if (!dir.exists(filepath))
-					dir.mkpath(filepath);
-				bool on = tmp_jpg->save(filepath+filename);
-				delete tmp_jpg;
+				QString p = filepath + filename;
+				qDebug() << p;
+				cv::imwrite(p.toStdString(), face);
+				//tmp_jpg = Mat2QImage(face);
+				//if (!dir.exists(filepath))
+				//	dir.mkpath(filepath);
+				//bool on = tmp_jpg->save(filepath+filename);
+				//delete tmp_jpg;
 
-				if (on)
-					qDebug("save face OK");
+				//if (on)
+				//	qDebug("save face OK");
 
 				#ifdef CALCULATE_GABOR
-					#ifdef USE_OPENCV_GPU
-					int top_buttom = face.rows * BORDER_FRAC;
-					int left_right = face.cols * BORDER_FRAC;
-					copyMakeBorder(face, face, 0, top_buttom, 0, left_right, cv::BORDER_REPLICATE);
-					#else
-					int top_buttom = face.rows * BORDER_FRAC * 0.335;
-					int left_right = face.cols * BORDER_FRAC * 0.335;
-					copyMakeBorder(face, face, top_buttom, 0, left_right, 0, cv::BORDER_REPLICATE);
-					#endif
-				// imwrite("imread_makeborder.jpg", face);
+				//	#ifdef USE_OPENCV_GPU
+				//	int top_buttom = face.rows * BORDER_FRAC;
+				//	int left_right = face.cols * BORDER_FRAC;
+				//	copyMakeBorder(face, face, 0, top_buttom, 0, left_right, cv::BORDER_REPLICATE);
+				//	#else
+				//	int top_buttom = face.rows * BORDER_FRAC * 0.335;
+				//	int left_right = face.cols * BORDER_FRAC * 0.335;
+				//	copyMakeBorder(face, face, top_buttom, 0, left_right, 0, cv::BORDER_REPLICATE);
+				//	#endif
 
 				for (int i = 0; i < 5; i++) // 尺度
 				{
@@ -325,12 +327,12 @@ void CK_Preprocessor::generator()
 					{
 						// Begin: 衡量时间性能的QTime
 						QTime time1 = QTime::currentTime();
-						gabor_result = printGabor_(face, this->gabor, j, i);
+						gabor_result = printGabor_(face, i, j);
 						// End: 衡量时间性能的QTime
 						QTime time2 = QTime::currentTime();
 						qDebug() << time1.msecsTo(time2);
-						Mat gabor_cropped = Mat(gabor_result, Rect(Point(150-101+1, 150-101+1), Point(gabor_result.cols, gabor_result.rows)));
-						tmp_jpg = Mat2QImage(gabor_cropped);
+						//Mat gabor_cropped = Mat(gabor_result, Rect(Point(150-101+1, 150-101+1), Point(gabor_result.cols, gabor_result.rows)));
+						tmp_jpg = Mat2QImage(gabor_result);
 
 						filepath = dst_path+store_path+dirinfo_outter.fileName()+"/"+dirinfo_inner.fileName()+"/"+fileinfo.baseName();
 						filename = QString("gabor_%1_%2.jpg").arg(i).arg(j);
@@ -422,6 +424,57 @@ void CK_Preprocessor::getL2()
 		}
 	}
 }
+
+/**
+ * getL2存在精度问题
+ */
+ void CK_Preprocessor::getL2_in_memory()
+ {
+ 	QFileInfo dirinfo_outter, dirinfo_inner, fileinfo;
+ 	QFileInfoList middle_list, inner_list;
+ 	QDir outter_dir, middle_dir, inner_dir;
+
+ 	outter_dir.cd(this->dst_path);
+ 	outter_dir.setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
+ 	middle_dir.setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
+ 	inner_dir.setFilter(QDir::Files);
+
+ 	Mat img;
+
+ 	QFileInfoList list = outter_dir.entryInfoList();
+ 	foreach(dirinfo_outter, list) //S010, S011
+ 	{
+ 		middle_dir.cd(dirinfo_outter.absoluteFilePath());
+ 		qDebug() << dirinfo_outter.absoluteFilePath();
+ 		middle_list = middle_dir.entryInfoList();
+
+ 		foreach(dirinfo_inner, middle_list) //001, 002
+ 		{
+ 			inner_dir.cd(dirinfo_inner.absoluteFilePath());
+ 			qDebug() << dirinfo_inner.absoluteFilePath();
+ 			inner_list = inner_dir.entryInfoList();
+
+ 			foreach(fileinfo, inner_list)
+ 			{
+ 				qDebug() << fileinfo.absoluteFilePath();
+				int len = fileinfo.baseName().size();
+				if (fileinfo.baseName()[len-4] == 'f' && fileinfo.baseName()[len-3] == 'a' &&
+					fileinfo.baseName()[len-2] == 'c' && fileinfo.baseName()[len-1] == 'e')
+				{
+					frame = cv::imread(fileinfo.absoluteFilePath().toStdString(), -1);
+					if (frame.channels() == 3)
+						cvtColor(frame, frame, CV_BGR2GRAY);
+ 					img = printGabor();
+ 					QString p = dirinfo_inner.absoluteFilePath() + "/" + fileinfo.baseName() + "_l2.jpg";
+ 					qDebug() << p;
+ 					imwrite(p.toStdString(), img);
+					// p = dirinfo_inner.absoluteFilePath() + "/" + fileinfo.baseName() + "_l2";
+					// Mat2Txt(p, img);
+				}
+ 			}
+ 		}
+ 	}
+ }
 
 vector<Information_Face> CK_Preprocessor::getInformationFromXML()
 {
@@ -559,36 +612,38 @@ bool sliceOk(Information_Face& info, int x_coord, int y_coord, int left, int rig
 }
 
 // 如果SliceOK，则把该区域转换为一维，并且根据是否是第一张或者最后一张，push到指定的vector中。
-void outputSliceHelper(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FACS_Face>& finalFACS, Information_Face& info, vector<FACS_Face>& vecFACS, Mat img, char* dstpath, int x_coord, int y_coord, int left, int right, int top, int bottom, bool needFlip)
+void outputSliceHelper(vector<Mat_<uchar>>& primeMatV, vector<Mat_<uchar>>& finalMatV, vector<FACS_Face>& finalFACS, Information_Face& info, vector<FACS_Face>& vecFACS, const Mat_<uchar>& img, char* dstpath, int x_coord, int y_coord, int left, int right, int top, int bottom, bool needFlip)
 {
+	CV_Assert(img.type() == 0);
+	CV_Assert(img.channels() == 1);
+
 	if (sliceOk(info, x_coord, y_coord, left, right, top, bottom))
 	{
-		Mat roi, result;
+		Mat roi, tmp;
 		int width = right + left;						// Slice的宽度
 		int height = bottom + top;						// Slice的高度
 
 		Rect r = Rect(Point(x_coord-left, y_coord-top), Point(x_coord+right, y_coord+bottom));
+		//qDebug("lefttop_x: %d; lefttop_y: %d; rightbottom_x: %d; rightbottom_y: %d", r.tl().x, r.tl().y, r.br().x, r.br().y);
 
-		roi.create(width, height, CV_8UC1);
 		if (!needFlip)
 			roi = Mat(img, r).clone();
 		else
 		{
-			flip(Mat(img, r), img, 1);
-			roi = img.clone();
+			flip(Mat(img, r), tmp, 1);
+			roi = tmp.clone();
 		}
-		cv::normalize(roi, roi, 0, 255, CV_MINMAX, CV_8UC1);
 		if (roi.isContinuous())
 		{
-			result = roi.reshape(0, 1);
 			if (info.frame == 1)
 			{
-				primeMatV.push_back(result);
+				primeMatV.push_back(roi);
 				imwrite(dstpath, roi);
 			}
 			else
 			{
-				finalMatV.push_back(result);
+				//cv::imwrite("t.jpg", roi);
+				finalMatV.push_back(roi);
 				finalFACS.push_back(getResponseFACS(vecFACS, info));
 				imwrite(dstpath, roi);
 			}
@@ -598,10 +653,10 @@ void outputSliceHelper(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FA
 	}
 }
 
-int outputSlice(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FACS_Face>& finalFACS, vector<Information_Face>& vecInfo, vector<FACS_Face>& vecFACS, int left, int right, int top, int bottom, FACESECTION section)
+int outputSlice(vector<Mat_<uchar>>& primeMatV, vector<Mat_<uchar>>& finalMatV, vector<FACS_Face>& finalFACS, vector<Information_Face>& vecInfo, vector<FACS_Face>& vecFACS, int left, int right, int top, int bottom, FACESECTION section)
 {
 	char srcpath[SLEN], dstpath[SLEN];
-	Mat img;
+	Mat_<uchar> img;
 	int sp = 0;		// 在左右脸的检测AU中，由于需要Flip归一化，但是Label中并没有这个信息，所以需要用Sp来区隔
 
 	int x_coord, y_coord;
@@ -618,11 +673,12 @@ int outputSlice(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FACS_Face
 		else if (section == MOUTH)
 			getOffsetMouth(&(*b), x_coord, y_coord, vecInfo);
 
-		sprintf(srcpath, "C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV_64bit\\FacialExpression_x64\\AfterPreprocess_Pre\\%s\\%s\\%s_merged_normalized.jpg", \
+		sprintf(srcpath, "C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV_64bit\\FacialExpression_x64\\AfterPreprocess_Pre\\%s\\%s\\%sface_l2.jpg", \
 			b->id.c_str(), b->expression.c_str(), b->filename.c_str());
+		//qDebug(srcpath);
 		// Slice的位置
 		sprintf(dstpath, "Slices\\%s_left.jpg", b->filename.c_str());
-		img = cv::imread(srcpath);
+		img = cv::imread(srcpath, CV_LOAD_IMAGE_GRAYSCALE);
 		if (section == EYE)
 			outputSliceHelper(primeMatV, finalMatV, finalFACS, *b, vecFACS, img, dstpath, x_coord, y_coord, left, right, top, bottom, false);
 		else
@@ -645,11 +701,11 @@ int outputSlice(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FACS_Face
 		else if (section == MOUTH)
 			getOffsetMouth(&(*b), x_coord, y_coord, vecInfo);
 
-		sprintf(srcpath, "C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV_64bit\\FacialExpression_x64\\AfterPreprocess_Pre\\%s\\%s\\%s_merged_normalized.jpg", \
+		sprintf(srcpath, "C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV_64bit\\FacialExpression_x64\\AfterPreprocess_Pre\\%s\\%s\\%sface_l2.jpg", \
 			b->id.c_str(), b->expression.c_str(), b->filename.c_str());
 		// Slice的位置
 		sprintf(dstpath, "Slices\\%s_right.jpg", b->filename.c_str());
-		img = cv::imread(srcpath);
+		img = cv::imread(srcpath, CV_LOAD_IMAGE_GRAYSCALE);
 		if (section == EYE)
 			outputSliceHelper(primeMatV, finalMatV, finalFACS, *b, vecFACS, img, dstpath, x_coord, y_coord, right, left, top, bottom, true);
 		else
@@ -661,12 +717,15 @@ int outputSlice(vector<Mat>& primeMatV, vector<Mat>& finalMatV, vector<FACS_Face
 void CK_Preprocessor::outputTxt(vector<Information_Face> vecInfo, vector<FACS_Face> vecFACS, FACESECTION section, int left, int right, int top, int bottom, int au)
 {
 	// 一些通用的定义
-	vector<Mat> primeMatV;					// 每个sequence的第一张的Slice
-	vector<Mat> finalMatV;					// 每个sequence的最后一张的Slice
+	vector<Mat_<uchar>> primeMatV;					// 每个sequence的第一张的Slice
+	vector<Mat_<uchar>> finalMatV;					// 每个sequence的最后一张的Slice
 	vector<FACS_Face> finalFACS;			// 每个sequence的AU Label，即最后一张的Slice呈现的AU Label
 
 	int width = right + left;						// Slice的宽度
 	int height = bottom + top;						// Slice的高度
+
+	int negative_sample = 0;
+	int positive_sample = 0;
 
 	char filename[20];
 	sprintf(filename, "AU_%d.txt", au);
@@ -675,27 +734,32 @@ void CK_Preprocessor::outputTxt(vector<Information_Face> vecInfo, vector<FACS_Fa
 	int sp = outputSlice(primeMatV, finalMatV, finalFACS, vecInfo, vecFACS, left, right, top, bottom, section);
 
 	FILE* fp = fopen(filename, "w+");
-	for (vector<Mat>::iterator b = primeMatV.begin(); b != primeMatV.end(); b++)
+	for (vector<Mat_<uchar>>::iterator b = primeMatV.begin(); b != primeMatV.end(); b++)
 	{
 		// 无表情的label为0
 		fputs("0 ", fp);
-		char* it = b->ptr<char>(0);
-		for (int i = 0; i < width * height; i++)
+		char s[50];
+		uchar *it;
+		for (int i = 0; i < b->rows; i++)
 		{
-			char buff_[50];
-			int int_tmp = it[i] + 128;
-			sprintf(buff_, "%d:%d ", i+1, int_tmp);
-			fputs(buff_, fp);
-			if (i == 1000)
-				fflush(fp);
+			it = b->ptr<uchar>(i);
+			for (int j = 0; j < b->cols; j++)
+			{
+				memset(s, 0, sizeof(s));
+				sprintf(s, "%d:%d ", i*b->cols+j+1, it[i*b->cols+j]);
+				fputs(s, fp);
+				if (i*b->cols+j == 1000)
+					fflush(fp);
+			}
 		}
 		fputs("\n", fp);
 		fflush(fp);
+		negative_sample++;
 	}
 
 	int i = 0;
 	char label[20];
-	for (vector<Mat>::iterator b = finalMatV.begin(); b != finalMatV.end(); b++, i++)
+	for (vector<Mat_<uchar>>::iterator b = finalMatV.begin(); b != finalMatV.end(); b++, i++)
 	{
 		memset(label, 0, sizeof(label));
 
@@ -703,48 +767,69 @@ void CK_Preprocessor::outputTxt(vector<Information_Face> vecInfo, vector<FACS_Fa
 		if (i < sp)
 		{
 			if (finalFACS.at(i).AU[au] != 0 && finalFACS.at(i).AU[au]/1000!=2)
+			{
 			 	strcat(label, "1 ");
+				positive_sample++;
+			}
 			else
+			{
 				strcat(label, "0 ");
+				negative_sample++;				
+			}
 		}
 		// 右眼
 		else
 		{
 			if (finalFACS.at(i).AU[au] != 0 && finalFACS.at(i).AU[au]/1000!=1)
-			 	strcat(label, "1 ");
+			{
+				strcat(label, "1 ");
+				positive_sample++;
+			} 	
 			else
+			{
 				strcat(label, "0 ");
+				negative_sample++;				
+			}
 		}
 
 		fputs(label, fp);
-		char* it = b->ptr<char>(0);
-		for (int i = 0; i < width * height; i++)
+		char s[50];
+		uchar *it;
+		for (int i = 0; i < b->rows; i++)
 		{
-			char buff_[50];
-			int int_tmp = it[i] + 128;
-			sprintf(buff_, "%d:%d ", i+1, int_tmp);
-			fputs(buff_, fp);
-			if (i == 1000)
-				fflush(fp);
+			it = b->ptr<uchar>(i);
+			for (int j = 0; j < b->cols; j++)
+			{
+				memset(s, 0, sizeof(s));
+				sprintf(s, "%d:%d ", i*b->cols+j+1, it[j]);
+				fputs(s, fp);
+				if (i*b->cols+j == 1000)
+					fflush(fp);
+			}
 		}
 		fputs("\n", fp);
 		fflush(fp);
 	}
 	fclose(fp);
+
+	qDebug("Positive sample: %d, Negative sample: %d", positive_sample, negative_sample);
 }
 
-//int main()
-//{
-//	CK_Preprocessor CK_preprocessor(QString("D:\\ck\\cohn-kanade\\cohn-kanade"));
-//	CK_preprocessor.generator();
-	//vector<Information_Face> a = CK_preprocessor.getInformationFromXML();
-	//vector<FACS_Face> b = CK_preprocessor.getFACSInformation();
+int main()
+{
+	CK_Preprocessor CK_preprocessor(QString("D:\\ck\\cohn-kanade\\cohn-kanade"));
+	//CK_preprocessor.generator();
+	//CK_preprocessor.getL2();
+	//CK_preprocessor.getL2_in_memory();
 
-	//CK_preprocessor.outputTxt(a, b, EYE, 15, 15, 35, 10, 1);   // AU1、AU2
-	//CK_preprocessor.outputTxt(a, b, EYE, 15, 15, 15, 15);	// AU4、AU5
-	//CK_preprocessor.outputTxt(a, b, EYE, 20, 20, 10, 50, 7);	// AU6、AU7
-	//CK_preprocessor.outputTxt(a, b, EYE, 0, 30, 15, 15, 9);	// AU9
-	//CK_preprocessor.outputTxt(a, b, MOUTH, 30, 30, 20, 10, 24);	// AU10、AU12、AU15、AU16、AU18、AU20、AU22、AU23、AU24
+	 vector<Information_Face> a = CK_preprocessor.getInformationFromXML();
+	 vector<FACS_Face> b = CK_preprocessor.getFACSInformation();
 
-//	return 0;
-//}
+	 //CK_preprocessor.outputTxt(a, b, EYE, 15, 15, 35, 10, 2);   // AU1、AU2
+	 //CK_preprocessor.outputTxt(a, b, EYE, 15, 15, 15, 15, 5);	// AU4、AU5
+	 //CK_preprocessor.outputTxt(a, b, EYE, 20, 20, 10, 50, 7);	// AU6、AU7
+	 //CK_preprocessor.outputTxt(a, b, EYE, 0, 30, 15, 15, 9);	// AU9
+	 //CK_preprocessor.outputTxt(a, b, MOUTH, 30, 30, 20, 10, 24);	// AU10、AU12、AU15、AU16、AU18、AU20、AU22、AU23、AU24
+
+	return 0;
+}

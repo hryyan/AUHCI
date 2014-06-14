@@ -30,6 +30,7 @@ using std::pair;
 #include "opencv2\core\internal.hpp"
 using cv::Rect;
 using cv::Mat;
+using cv::Mat_;
 using cv::VideoCapture;
 using cv::Point;
 using cv::Scalar;
@@ -39,7 +40,7 @@ using cv::sqrt;
 #include "source.h"
 
 // 是否使用GPU加速卷积
-#define USE_CUDA
+//#define USE_CUDA
 //#define USE_OPENCV_GPU
 
 // 是否使用目标识别
@@ -138,5 +139,11 @@ void ConvertBackslashesToForwardAndStripFinalSlash(char* s);
 * @return      QImage的指针
 */
 QImage* Mat2QImage(Mat& T);
+
+/**
+ * 把Mat转换成Txt文本（这样精度就没有任何损失）
+ * @param in: Mat
+ */
+void Mat2Txt(string path, Mat_<uchar>& m);
 
 #endif //UTIL_H

@@ -11,6 +11,9 @@
 static cv::CascadeClassifier mouth_det_g;
 static cv::CascadeClassifier nose_det_g;
 
+//static cv::gpu::CascadeClassifier_GPU mouth_det_gpu_g;
+//static cv::gpu::CascadeClassifier_GPU nose_det_gpu_g;
+
 // 数据流中的人脸信息
 extern DetPar frame_detpar;
 
@@ -50,6 +53,8 @@ static void SelectMouths(int &imouth_best, vec_Rect *mouths, const Rect &mouths_
 void DetectMouth(Mat &img)
 {
     OpenDetector(&mouth_det_g, "Mouth.xml");
+    //OpenDetector(&mouth_det_gpu_g, "Mouth.xml");
+
     // 把人脸的区域勾出来
     Rect facerect(cvRound(frame_detpar.x - frame_detpar.width/2),
                   cvRound(frame_detpar.y - frame_detpar.height/2),
@@ -60,6 +65,7 @@ void DetectMouth(Mat &img)
     frame_detpar.mouthx = frame_detpar.mouthy = INVALID;
     vec_Rect mouths;
     int imouth_best = -1;
+
     if (!mouth_det_g.empty())
     {
         // 脸下部的区域
@@ -70,21 +76,28 @@ void DetectMouth(Mat &img)
         mouths_rect.height  += cvRound(.3 * facerect.height);
 
         // 输出所有预选的嘴部列表
+        //#ifdef USE_OPENCV_GPU_DETECTION
+        //mouths = Detect(img, &mouth_det_gpu_g, &mouths_rect, facerect.width/10);
+        //#else
         mouths = Detect(img, &mouth_det_g, &mouths_rect, facerect.width/10);
+        //#endif
 
         // 在所有嘴部中选取最合适的
         SelectMouths(imouth_best, &mouths, mouths_rect);
 
         // 把嘴部框的坐标映射到人脸框
-		#ifdef ALLOWPOINT
         if (imouth_best >= 0)
 		{
             RectToImgFrame(frame_detpar.mouthx, frame_detpar.mouthy, mouths[imouth_best]);
+			#ifdef ALLOWPOINT
 			circle(img, Point(mouths[0].x+mouths[0].width/2, mouths[0].y+mouths[0].height/2), 1, Scalar(255, 255, 255));
+			#endif
 		}
-		#endif
+
         // 画出嘴巴
-  //       rectangle(img, mouths[0], Scalar(0, 0, 255));
+		#ifdef ALLOWPOINT
+         rectangle(img, mouths[0], Scalar(0, 0, 255));
+		 #endif
     }
 }
 
@@ -94,7 +107,8 @@ void DetectMouth(Mat &img)
  */
 void DetectNose(Mat &img)
 {
-    OpenDetector(&nose_det_g, "Mouth.xml");
+    OpenDetector(&nose_det_g, "Nose.xml");
+    //OpenDetector(&nose_det_gpu_g, "Nose.xml");
     // 把人脸的区域勾出来
     Rect facerect(cvRound(frame_detpar.x - frame_detpar.width/2),
                   cvRound(frame_detpar.y - frame_detpar.height/2),
@@ -115,7 +129,11 @@ void DetectNose(Mat &img)
         noses_rect.height  += cvRound(.4 * facerect.height);
 
         // 输出所有预选的嘴部列表
+        //#ifdef USE_OPENCV_GPU_DETECTION
+        //noses = Detect(img, &nose_det_gpu_g, &noses_rect, facerect.width/10);
+        //#else
         noses = Detect(img, &nose_det_g, &noses_rect, facerect.width/10);
+        //#endif
 	
         // 在所有嘴部中选取最合适的
         SelectMouths(inose_best, &noses, noses_rect);
@@ -125,13 +143,15 @@ void DetectNose(Mat &img)
 		{
 			rectangle(img, noses[i], Scalar(255, 255, 255));
 		}
-
+		#endif
         // 把嘴部框的坐标映射到人脸框
         if (inose_best >= 0)
 		{
             RectToImgFrame(frame_detpar.nosex, frame_detpar.nosey, noses[inose_best]);
+			#ifdef ALLOWPOINT
 			circle(img, Point(noses[0].x+noses[0].width/2, noses[0].y+noses[0].height/2), 1, Scalar(255, 255, 255));
+			#endif
 		}
-		#endif
+		
     }
 }

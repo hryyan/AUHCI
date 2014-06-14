@@ -83,6 +83,11 @@ public:
     void getL2();
 
     /**
+     * getL2存在精度问题
+     */
+    void getL2_in_memory();
+
+    /**
      * TODO：得到所有Gabor滤波后数据的方差
      */
     void getVariance();

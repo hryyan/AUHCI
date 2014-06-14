@@ -51,3 +51,25 @@ QImage* Mat2QImage(Mat& I)
     }
     return img;
 }
+
+/**
+ * 把Mat转换成Txt文本（这样精度就没有任何损失）
+ * @param in: Mat
+ */
+void Mat2Txt(string path, Mat_<uchar>& m)
+{
+    FILE* fp = fopen(path.c_str(), "w+");
+    char buff[50];
+
+    uchar *it = m.ptr<uchar>(0);
+    for (int i = 0; i < m.cols*m.rows; i++)
+    {
+        memset(buff, 0, sizeof(buff));
+        sprintf(buff, "%d:%d ", i+1, it[i]);
+        fputs(buff, fp);
+        if (i % 1001 == 0)
+            fflush(fp);
+    }
+    fflush(fp);
+    fclose(fp);
+}

@@ -173,7 +173,7 @@ Mat Gabor::getRealGaborKernel(Size ksize, double sigma, double theta, double nu,
 }
 
 // 获得实部与虚部的L2范式
-Mat Gabor::getMagnitude(Mat& real, Mat &imag)
+Mat Gabor::getMagnitude(Mat &real, Mat &imag)
 {
     CV_Assert(real.type()==imag.type());
     CV_Assert(real.size()==imag.size());
@@ -317,26 +317,31 @@ Mat Gabor::getFilter(Mat &src, Mat &ker)
 
 CUDA_Gabor::CUDA_Gabor()
 {
-
+	
 }
 
 CUDA_Gabor::~CUDA_Gabor()
 {
-    checkCudaErrors(cudaFree(d_DataSpectrum));
-    checkCudaErrors(cudaFree(d_PaddedData));
-    checkCudaErrors(cudaFree(d_PaddedKernel));
-    checkCudaErrors(cudaFree(d_Data));
-    checkCudaErrors(cudaFree(d_Kernel));
+	if (isInited)
+	{
+		checkCudaErrors(cudaFree(d_DataSpectrum));
+        checkCudaErrors(cudaFree(d_StoreSpectrum));
+		checkCudaErrors(cudaFree(d_PaddedData));
+		checkCudaErrors(cudaFree(d_PaddedKernel));
+		checkCudaErrors(cudaFree(d_Data));
+		checkCudaErrors(cudaFree(d_Kernel));
+        checkCudaErrors(cudaFree(d_Result));
 
-    for (int i = 0; i < 40; i++)
-    {
-        checkCudaErrors(cudaFree(d_VecRealKernelSpectrum[i]));
-        checkCudaErrors(cudaFree(d_VecImagKernelSpectrum[i]));
-    }
+		for (int i = 0; i < 40; i++)
+		{
+			checkCudaErrors(cudaFree(d_VecRealKernelSpectrum[i]));
+			checkCudaErrors(cudaFree(d_VecImagKernelSpectrum[i]));
+		}
 
-    free(h_ResultGPU);
-    free(h_Data);
-    free(h_Kernel);
+		free(h_ResultGPU);
+		free(h_Data);
+		free(h_Kernel);
+	}
 }
 
 void CUDA_Gabor::Init(Size ksize, double sigma, double gamma, int ktype)
@@ -361,8 +366,8 @@ void CUDA_Gabor::Init(Size ksize, double sigma, double gamma, int ktype)
     kernelW = ksize.width;
     kernelY = (ksize.height - 1) / 2;
     kernelX = (ksize.width  - 1) / 2;
-    dataH = 200;
-    dataW = 200;
+    dataH = 150;
+    dataW = 150;
     fftH = snapTransformSize(dataH + kernelH - 1);
     fftW = snapTransformSize(dataW + kernelW - 1);
 
@@ -373,13 +378,15 @@ void CUDA_Gabor::Init(Size ksize, double sigma, double gamma, int ktype)
     h_ResultGPU = (float *)malloc(fftH    * fftW * sizeof(float));
 
     // GPU中的kernel以及PadderKernel初始化
-    checkCudaErrors(cudaMalloc((void **)&d_Kernel, kernelH * kernelW * sizeof(float)));
+    checkCudaErrors(cudaMalloc((void **)&d_Kernel,         kernelH * kernelW * sizeof(float)));
     checkCudaErrors(cudaMalloc((void **)&d_PaddedKernel,   fftH * fftW * sizeof(float)));
 
     // GPU中的DATA以及PadderData初始化
-    checkCudaErrors(cudaMalloc((void **)&d_Data,   dataH   * dataW   * sizeof(float)));
-    checkCudaErrors(cudaMalloc((void **)&d_PaddedData,   fftH * fftW * sizeof(float)));
+    checkCudaErrors(cudaMalloc((void **)&d_Data,           dataH   * dataW   * sizeof(float)));
+    checkCudaErrors(cudaMalloc((void **)&d_PaddedData,     fftH * fftW * sizeof(float)));
+    checkCudaErrors(cudaMalloc((void **)&d_Result,         fftH * fftW * sizeof(float)));
     checkCudaErrors(cudaMalloc((void **)&d_DataSpectrum,   fftH * (fftW / 2 + 1) * sizeof(fComplex)));
+    checkCudaErrors(cudaMalloc((void **)&d_StoreSpectrum,  fftH * (fftW / 2 + 1) * sizeof(fComplex)));
 
     // 对FFT变换初始化
     checkCudaErrors(cufftPlan2d(&fftPlanFwd, fftH, fftW, CUFFT_R2C));
@@ -447,8 +454,8 @@ void CUDA_Gabor::Prepare_GPU_PadderData(Mat &src)
             h_Data[i*dataW+j] = Mi[j];
     }
 
-    checkCudaErrors(cudaMemcpy(d_Data,   h_Data,   dataH   * dataW *   sizeof(float), cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemset(d_PaddedData,   0, fftH * fftW * sizeof(float)));
+    checkCudaErrors(cudaMemcpy(d_Data,   h_Data,    dataH   * dataW *   sizeof(float), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemset(d_PaddedData,   0,   fftH * fftW * sizeof(float)));
 
     padDataClampToBorder(
         d_PaddedData,
@@ -465,12 +472,15 @@ void CUDA_Gabor::Prepare_GPU_PadderData(Mat &src)
 
     checkCudaErrors(cufftExecR2C(fftPlanFwd, (cufftReal *)d_PaddedData, (cufftComplex *)d_DataSpectrum));
     checkCudaErrors(cudaDeviceSynchronize());
+	checkCudaErrors(cudaMemcpy(d_StoreSpectrum, d_DataSpectrum, fftH * (fftW / 2 + 1) * sizeof(fComplex), cudaMemcpyDeviceToDevice));
 }
 
 Mat CUDA_Gabor::getFilter(Mat &src, int index, bool isReal)
 {
     if (!src.empty())
         Prepare_GPU_PadderData(src);
+    else
+        checkCudaErrors(cudaMemcpy(d_DataSpectrum, d_StoreSpectrum, fftH * (fftW / 2 + 1) * sizeof(fComplex), cudaMemcpyDeviceToDevice));
 
     StopWatchInterface *hTimer = NULL;
     sdkCreateTimer(&hTimer);
@@ -480,9 +490,9 @@ Mat CUDA_Gabor::getFilter(Mat &src, int index, bool isReal)
         modulateAndNormalize(d_DataSpectrum, d_VecRealKernelSpectrum[index], fftH, fftW, 1);
     else
         modulateAndNormalize(d_DataSpectrum, d_VecImagKernelSpectrum[index], fftH, fftW, 1);
-    checkCudaErrors(cufftExecC2R(fftPlanInv, (cufftComplex *)d_DataSpectrum, (cufftReal *)d_PaddedData));
+    checkCudaErrors(cufftExecC2R(fftPlanInv, (cufftComplex *)d_DataSpectrum, (cufftReal *)d_Result));
     checkCudaErrors(cudaDeviceSynchronize());
-    checkCudaErrors(cudaMemcpy(h_ResultGPU, d_PaddedData, fftH * fftW * sizeof(float), cudaMemcpyDeviceToHost));
+    checkCudaErrors(cudaMemcpy(h_ResultGPU, d_Result, fftH * fftW * sizeof(float), cudaMemcpyDeviceToHost));
 
     Mat result = Mat(dataH, dataW, CV_32F);
     for (int i = 0; i < dataH; i++)
@@ -516,14 +526,13 @@ Mat printGabor()
         return Mat();
     }
     qDebug("rows: %d, cols: %d", frame.rows, frame.cols);
-    Mat mat_tmp = frame.clone();
-    cv::resize(mat_tmp, mat_tmp, Size(RESIZE_WIDTH, RESIZE_HEIGHT));
+    Mat mat_tmp;
+    cv::resize(frame, frame, Size(RESIZE_WIDTH, RESIZE_HEIGHT));
 
-    int top_buttom = mat_tmp.rows * BORDER_FRAC * 0.335;
-    int left_right = mat_tmp.cols * BORDER_FRAC * 0.335;
-    copyMakeBorder(mat_tmp, mat_tmp, top_buttom, 0, left_right, 0, cv::BORDER_REPLICATE);
-
-    mat_tmp.convertTo(mat_tmp, CV_32F);
+	//int top_buttom = mat_tmp.rows * BORDER_FRAC * 0.335;
+	//int left_right = mat_tmp.cols * BORDER_FRAC * 0.335;
+	//copyMakeBorder(mat_tmp, mat_tmp, top_buttom, 0, left_right, 0, cv::BORDER_REPLICATE);
+    frame.convertTo(mat_tmp, CV_32F);
     normalize(mat_tmp, mat_tmp, 1, 0, CV_MINMAX, CV_32F);
     
     if (!gabor_cuda_g.isInited)
@@ -551,18 +560,19 @@ Mat printGabor()
     qDebug("Starting pow and normalize...");
     cv::pow(mat_tmp, 0.5, mat_tmp);
     cv::normalize(mat_tmp, mat_tmp, 0, 255, CV_MINMAX, CV_8UC1);
-    cv::resize(mat_tmp, mat_tmp, Size(RESIZE_WIDTH, RESIZE_HEIGHT));
-    cv::imwrite("out.jpg", mat_tmp);
+    /*cv::resize(mat_tmp, mat_tmp, Size(RESIZE_WIDTH, RESIZE_HEIGHT));*/
+
+    //mat_tmp = Mat(mat_tmp, Rect(Point(150-21+1, 150-21+1), Point(mat_tmp.cols, mat_tmp.rows)));
     return mat_tmp;
 }
 
 /**
 * 输出对应相位和方向的Gabor特征的实部与虚部的L2范式
-* @param  方向
 * @param  尺度
+* @param  方向
 * @return
 */
-Mat printGabor_(Mat& m, Gabor& gabor, int mu, int nu)
+Mat printGabor_(Mat& m, int nu, int mu)
 {
     Mat tmp, output;
     if (m.rows == 0 || m.cols == 0)
@@ -570,15 +580,22 @@ Mat printGabor_(Mat& m, Gabor& gabor, int mu, int nu)
         return m;
     }
 
-    if (!gabor.isInited)
+    if (!gabor_cuda_g.isInited)
     {
-        gabor.Init(Size(iSize, iSize), sqrt(2.0), 1, CV_32F);
+        gabor_cuda_g.Init(Size(iSize, iSize), sqrt(2.0), 1, CV_32F);
     }
+    //m.convertTo(tmp, CV_32F);
+    //normalize(tmp, tmp, 1, 0, CV_MINMAX, CV_32F);
+
+    //gabor.getFilterMagnitude(tmp, gabor.gaborRealKernels[nu*8+mu], gabor.gaborImagKernels[nu*8+mu], output);
+
+    //return output;
+    
     m.convertTo(tmp, CV_32F);
     normalize(tmp, tmp, 1, 0, CV_MINMAX, CV_32F);
-
-    gabor.getFilterMagnitude(tmp, gabor.gaborRealKernels[nu*8+mu], gabor.gaborImagKernels[nu*8+mu], output);
-
+	gabor_cuda_g.Prepare_GPU_PadderData(tmp);
+    gabor_cuda_g.getFilterMagnitude(tmp, nu*8+mu, output);
+	cv::normalize(output, output, 0, 255, CV_MINMAX, CV_8UC1);
     return output;
 }
 
