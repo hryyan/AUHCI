@@ -14,13 +14,6 @@ CUDA_Gabor gabor_cuda_g;
 // 默认的核大小
 static const int iSize = 21;
 
-// 滤波前需要进行边界扩充，这个代码以前在generator.cpp中使用过
-const double BORDER_FRAC = 1;
-
-// 把采集到的图像进行缩放，到统一尺寸
-const int RESIZE_WIDTH  = 150;
-const int RESIZE_HEIGHT = 150;
-
 Gabor::Gabor()
 {
     isInited = false;

@@ -17,6 +17,9 @@ static cv::CascadeClassifier nose_det_g;
 // 数据流中的人脸信息
 extern DetPar frame_detpar;
 
+// 数据流中的Mat
+extern Mat frame;
+
 /**
  * 按矩形的大小降序排列
  * @param  rect1 in: Rect1
@@ -50,7 +53,7 @@ static void SelectMouths(int &imouth_best, vec_Rect *mouths, const Rect &mouths_
  * 检测Mouth的程序
  * @param img in/out: 源图像
  */
-void DetectMouth(Mat &img)
+void DetectMouth()
 {
     OpenDetector(&mouth_det_g, "Mouth.xml");
     //OpenDetector(&mouth_det_gpu_g, "Mouth.xml");
@@ -77,9 +80,9 @@ void DetectMouth(Mat &img)
 
         // 输出所有预选的嘴部列表
         //#ifdef USE_OPENCV_GPU_DETECTION
-        //mouths = Detect(img, &mouth_det_gpu_g, &mouths_rect, facerect.width/10);
+        //mouths = Detect(frame, &mouth_det_gpu_g, &mouths_rect, facerect.width/10);
         //#else
-        mouths = Detect(img, &mouth_det_g, &mouths_rect, facerect.width/10);
+        mouths = Detect(frame, &mouth_det_g, &mouths_rect, facerect.width/10);
         //#endif
 
         // 在所有嘴部中选取最合适的
@@ -90,22 +93,21 @@ void DetectMouth(Mat &img)
 		{
             RectToImgFrame(frame_detpar.mouthx, frame_detpar.mouthy, mouths[imouth_best]);
 			#ifdef ALLOWPOINT
-			circle(img, Point(mouths[0].x+mouths[0].width/2, mouths[0].y+mouths[0].height/2), 1, Scalar(255, 255, 255));
+			circle(frame, Point(mouths[0].x+mouths[0].width/2, mouths[0].y+mouths[0].height/2), 1, Scalar(255, 255, 255));
 			#endif
 		}
 
         // 画出嘴巴
 		#ifdef ALLOWPOINT
-         rectangle(img, mouths[0], Scalar(0, 0, 255));
+         rectangle(frame, mouths[0], Scalar(0, 0, 255));
 		 #endif
     }
 }
 
 /**
  * 检测Nose
- * @param frame in: 源图像
  */
-void DetectNose(Mat &img)
+void DetectNose()
 {
     OpenDetector(&nose_det_g, "Nose.xml");
     //OpenDetector(&nose_det_gpu_g, "Nose.xml");
@@ -130,9 +132,9 @@ void DetectNose(Mat &img)
 
         // 输出所有预选的嘴部列表
         //#ifdef USE_OPENCV_GPU_DETECTION
-        //noses = Detect(img, &nose_det_gpu_g, &noses_rect, facerect.width/10);
+        //noses = Detect(frame, &nose_det_gpu_g, &noses_rect, facerect.width/10);
         //#else
-        noses = Detect(img, &nose_det_g, &noses_rect, facerect.width/10);
+        noses = Detect(frame, &nose_det_g, &noses_rect, facerect.width/10);
         //#endif
 	
         // 在所有嘴部中选取最合适的
@@ -141,7 +143,7 @@ void DetectNose(Mat &img)
 		#ifdef ALLOWPOINT
 		for (int i = 0; i < noses.size(); i++)
 		{
-			rectangle(img, noses[i], Scalar(255, 255, 255));
+			rectangle(frame, noses[i], Scalar(255, 255, 255));
 		}
 		#endif
         // 把嘴部框的坐标映射到人脸框
@@ -149,7 +151,7 @@ void DetectNose(Mat &img)
 		{
             RectToImgFrame(frame_detpar.nosex, frame_detpar.nosey, noses[inose_best]);
 			#ifdef ALLOWPOINT
-			circle(img, Point(noses[0].x+noses[0].width/2, noses[0].y+noses[0].height/2), 1, Scalar(255, 255, 255));
+			circle(frame, Point(noses[0].x+noses[0].width/2, noses[0].y+noses[0].height/2), 1, Scalar(255, 255, 255));
 			#endif
 		}
 		

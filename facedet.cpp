@@ -18,7 +18,7 @@ static cv::CascadeClassifier facedet_g;
 static cv::gpu::CascadeClassifier_GPU facedet_gpu_g;
 
 // 图像边缘忽略的比例
-static double BORDER_FRAC = 0.1;
+static double BORDER_FRAC_FACE = 0.1;
 
 /**
  * 在图像周围添加边界
@@ -32,8 +32,8 @@ static Image EmborderImg(int &leftborder, int &topborder, const Image& img)
     Image bordered_img(img);
 
     // cvRound是OpenCV 1.X的函数，使用C，所以不在命名空间内
-    leftborder = cvRound(BORDER_FRAC * bordered_img.cols);
-    topborder  = cvRound(BORDER_FRAC * bordered_img.rows);
+    leftborder = cvRound(BORDER_FRAC_FACE * bordered_img.cols);
+    topborder  = cvRound(BORDER_FRAC_FACE * bordered_img.rows);
 
     copyMakeBorder(bordered_img, bordered_img, topborder, topborder, leftborder, leftborder, cv::BORDER_REPLICATE);
     return bordered_img;
@@ -48,7 +48,7 @@ static Image EmborderImg(int &leftborder, int &topborder, const Image& img)
 static void DetectFaces(vec_DetPar &detpars, const Image &img, int minwidth)
 {
     int leftborder = 0, topborder = 0;
-    Image bordered_img(BORDER_FRAC == 0 ? img : EmborderImg(leftborder, topborder, img));
+    Image bordered_img(BORDER_FRAC_FACE == 0 ? img : EmborderImg(leftborder, topborder, img));
 
     // 直方均衡后的结果比较好，并且直方均衡比较快
     Image equalized_img;
@@ -182,25 +182,25 @@ vector<DetPar> DetectFaces_(const Image &img, bool multiface, int minwidth)
 
 void InitFaceDet()
 {
-    OpenDetector(&facedet_g, "haarcascade_frontalface_alt2.xml");
-    OpenDetector(&facedet_gpu_g, "haarcascade_frontalface_alt2.xml");
+    if(facedet_g.empty())
+        OpenDetector(&facedet_g, "haarcascade_frontalface_alt2.xml");
+
+    if (facedet_gpu_g.empty())
+        OpenDetector(&facedet_gpu_g, "haarcascade_frontalface_alt2.xml");
 }
 
 /**
  * 打印人脸
  * @return QImage
  */
-Mat printFace()
+void PrintFaceToFrame()
 {
+    CV_Assert(!facedet_g.empty());
+    CV_Assert(!facedet_gpu_g.empty());
+
 	qDebug("Starting printFace...");
 	QTime time1 = QTime::currentTime();
     Mat face, face_mask, dst;
-    
-    if(facedet_g.empty())
-        OpenDetector(&facedet_g, "haarcascade_frontalface_alt2.xml");
-
-	if (facedet_gpu_g.empty())
-		OpenDetector(&facedet_gpu_g, "haarcascade_frontalface_alt2.xml");
 
     if (frame.channels() == 3)
         cvtColor(frame, frame, CV_BGR2GRAY);
@@ -234,9 +234,14 @@ Mat printFace()
         frame_detpar.y = frame_detpar.height / 2;
     }
 
+    // 把图像缩放成一个固定尺寸，并且修改它的大小等参数。
+    cv::resize(dst, dst, Size(RESIZE_WIDTH, RESIZE_HEIGHT));
+    frame_detpar.width  = RESIZE_WIDTH;
+    frame_detpar.height = RESIZE_HEIGHT;
+    frame_detpar.x      = frame_detpar.width / 2;
+    frame_detpar.y      = frame_detpar.height / 2;
     dst.copyTo(frame);
-    //bilateralFilter(face, face_after_bilateral_filter, 7, 9, 9);
+
 	QTime time2 = QTime::currentTime();
 	qDebug() << QString("face_detection: ") << time1.msecsTo(time2) << QString("ms");
-    return dst;
 }

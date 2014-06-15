@@ -5,15 +5,11 @@
 
 #include "facialexpression_x64.h"
 
-extern VideoCapture cap;
 extern Mat frame;
 extern DetPar frame_detpar;
 
 static int face_tmp_name  = 1;
 static int gabor_tmp_name = 1;
-
-static int RESIZE_WIDTH  = 150;
-static int RESIZE_HEIGHT = 150;
 
 FacialExpressionX64::FacialExpressionX64(QWidget *parent, Qt::WFlags flags)
 {
@@ -84,15 +80,15 @@ FacialExpressionX64::FacialExpressionX64(QWidget *parent, Qt::WFlags flags)
         qDebug("CV environment inited fail!");
         this->close();
     }
-    if (InitSVM())
-    {
-        qDebug("SVM environment inited success!");
-    }
-    else
-    {
-        qDebug("SVM environment inited fail!");
-        this->close();
-    }
+	if (InitSVM())
+	{
+		qDebug("SVM environment inited success!");
+	}
+	else
+	{
+		qDebug("SVM environment inited fail!");
+		this->close();
+	}
 
     can_process = true;
 
@@ -171,19 +167,16 @@ void FacialExpressionX64::DisplayInput()
  */
 void FacialExpressionX64::ProcessOneFrame()
 {
-    Mat face, gabor;
+    Mat gabor;
     QImage *img_to_be_print;
     // 检测三个checkBox
     // 第一个是是否检测脸部
     if (show_face_checkbox->isChecked())
     {
-        face = printFace();
-		cv::resize(frame, frame, Size(RESIZE_WIDTH, RESIZE_HEIGHT));
-		frame_detpar.width = RESIZE_WIDTH;				frame_detpar.height = RESIZE_HEIGHT;
-		frame_detpar.x	   = frame_detpar.width / 2;	frame_detpar.y		= frame_detpar.height / 2;
-		DetectEyes(frame);
-		//DetectMouth(face);
-        img_to_be_print = Mat2QImage(face);
+        PrintFaceToFrame();
+		DetectEyes();
+		//DetectMouth();
+        img_to_be_print = Mat2QImage(frame);
         face_label->setPixmap(QPixmap::fromImage(*img_to_be_print));
         free(img_to_be_print);
 

@@ -11,12 +11,11 @@
  * 检测Mouth
  * @param frame in: 源图像
  */
-void DetectMouth(Mat &frame);
+void DetectMouth();
 
 /**
  * 检测Nose
- * @param frame in: 源图像
  */
-void DetectNose(Mat &frame);
+void DetectNose();
 
 #endif // OTHERDET_H

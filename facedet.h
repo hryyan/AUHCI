@@ -19,7 +19,7 @@ vector<DetPar> DetectFaces_(const Image& img, bool multiface, int minwidth);
  * 打印人脸
  * @return QImage
  */
-Mat printFace();
+void PrintFaceToFrame();
 
 void InitFaceDet();
 

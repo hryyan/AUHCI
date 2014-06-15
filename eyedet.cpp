@@ -8,6 +8,9 @@
 // 数据流中的人脸信息
 extern DetPar frame_detpar;
 
+// 数据流中的当前Mat
+extern Mat frame;
+
 /**
  * 左右眼的两个级联分类器
  */
@@ -190,7 +193,7 @@ static void SelectEyes(int &ileft_best, int &iright_best, const vec_Rect &leyes,
  * @param frame_detpar 参数集
  * @param frame  
  */
-void DetectEyes(const Mat &img)
+void DetectEyes()
 {
     if (leye_det_g.empty())
         OpenDetector(&leye_det_g, "haarcascade_mcs_lefteye.xml");
@@ -218,7 +221,7 @@ void DetectEyes(const Mat &img)
     if (!leye_det_g.empty() && !reye_det_g.empty())
     {
         // 输出所有预选的左右眼的列表
-        DetectAllEyes(leyes, reyes, img, facerect);
+        DetectAllEyes(leyes, reyes, frame, facerect);
 
         // 脸上部的小块区域
         Rect eyesRect;

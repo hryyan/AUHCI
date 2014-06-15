@@ -17,6 +17,6 @@
  * @param detpar 参数集
  * @param frame  
  */
-void DetectEyes(const Mat& frame);
+void DetectEyes();
 
 #endif // EYEDET_H

@@ -7,9 +7,6 @@
 extern Mat frame;
 extern DetPar frame_detpar;
 
-const int RESIZE_WIDTH  = 150;
-const int RESIZE_HEIGHT = 150;
-
 const int AU_NUM = 16;
 const int AU_INDEX[AU_NUM] = { 1,  2,  4,  5,  6,  7,  9, 10, 12, 15, 
 							  16, 18, 20, 22, 23, 24};
@@ -147,6 +144,8 @@ void predict(Mat *x, int *output)
 
 void getROI(Mat &src, int left, int right, int top, int bottom, DetPar det, FACESECTION section, Mat& left_mat, Mat& right_mat)
 {
+	qDebug("Width: %d, Height: %d", src.cols, src.rows);
+	qDebug("left: %d, right: %d, top: %d, bottom: %d", left, right, top, bottom);
     Point left_tl, left_br, right_tl, right_br;
     if (section == EYE)
     {
@@ -184,49 +183,24 @@ void getROI(Mat &src, int left, int right, int top, int bottom, DetPar det, FACE
             right_br = Point(det.mouthx+right, det.mouthy+bottom);
         }
     }
-    if (left_tl.x > 0 && left_tl.y > 0 &&
-        left_br.x > 0 && left_br.y > 0)
-	{
-        left_mat  = Mat(src, Rect(left_tl, left_br));
-		qDebug("lefttop_x: %d; lefttop_y: %d; rightbottom_x: %d; rightbottom_y: %d", left_tl.x, left_tl.y, left_br.x, left_br.y);
-		cv::imwrite("left_mat.jpg", left_mat);
-	}
+
+    if (IsSliceOk(left_tl, left_br))
+    {
+		qDebug("tl.x: %d, tl.y: %d, br.x: %d, br.y: %d", left_tl.x, left_tl.y, left_br.x, left_br.y);
+        left_mat = GetSlice(src, left_tl, left_br, false);
+        // qDebug("lefttop_x: %d; lefttop_y: %d; rightbottom_x: %d; rightbottom_y: %d", left_tl.x, left_tl.y, left_br.x, left_br.y);
+        cv::imwrite("left_mat.jpg", left_mat);
+    }
     else
         left_mat  = Mat();
 
-    if (right_tl.x > 0 && right_tl.y > 0 &&
-        right_br.x > 0 && right_br.y > 0)
+    if (IsSliceOk(right_tl, right_br))
 	{
-        flip(Mat(src, Rect(right_tl, right_br)).clone(), right_mat, 1);
+        right_mat = GetSlice(src, left_tl, left_br, true);
 		cv::imwrite("right_mat.jpg", right_mat);
 	}
     else
         right_mat = Mat();
-}
-
-void print_to_file(Mat m)
-{
-    FILE* fp = fopen("mat", "wb+");
-    fputs("1 ", fp);
-    char s[50];
-    double value;
-	uchar *it;
-
-	for (int i = 0; i < m.rows; i++)
-	{
-		it = m.ptr<uchar>(i);
-		for (int j = 0; j < m.cols; j++)
-		{
-			memset(s, 0, sizeof(s));
-			sprintf(s, "%d:%d ", i*m.cols+j+1, it[j]);
-			fputs(s, fp);
-			if (i*m.cols+j == 1000)
-				fflush(fp);
-		}
-	}
-   
-    fputs("\n", fp);
-    fclose(fp);
 }
 
 void classiftInit()
@@ -256,48 +230,46 @@ void getAU(bool* au_bool, Mat& gabor_img)
 	free(output);
 }
 
-int man ()
-{
-	char pic_path[SLEN];
-	char pic_warehouse[SLEN] = ".\\Pic_warehouse\\";
-	char pic_name[SLEN];
-
-	Mat gabor_img;
-	Mat m[10];
-
-	int* output;
-	output = (int*)malloc(AU_NUM*2*sizeof(int));
-	for (int i = 0; i < 10; ++i)
-	{
-		memset(pic_path, 0, sizeof(pic_path));
-		sprintf(pic_name, "%d.png", i);
-		strcat(pic_path, pic_warehouse);
-		strcat(pic_path, pic_name);
-
-		InitPic(pic_path);
-
-		printFace();
-		cv::resize(frame, frame, Size(RESIZE_WIDTH, RESIZE_HEIGHT));
-		frame_detpar.width = RESIZE_WIDTH;				frame_detpar.height = RESIZE_HEIGHT;
-		frame_detpar.x	   = frame_detpar.width / 2;	frame_detpar.y		= frame_detpar.height / 2;
-		DetectEyes(frame);
-		DetectMouth(frame);
-		DetectNose(frame);
-		cv::imwrite("g.jpg", frame);
-		frame = cv::imread("g.jpg", CV_LOAD_IMAGE_GRAYSCALE);
-		qDebug("frame type: %d, channels: %d", frame.type(), frame.channels());
-		gabor_img = printGabor();
-		cv::imwrite("g.jpg", gabor_img);
-
-		gabor_img = cv::imread("g.jpg", CV_LOAD_IMAGE_GRAYSCALE);
-		getROI(gabor_img, 15, 15, 35, 10, frame_detpar, EYE,   m[0], m[1]);
-		getROI(gabor_img, 15, 15, 15, 15, frame_detpar, EYE,   m[2], m[3]);
-		getROI(gabor_img, 20, 20, 10, 50, frame_detpar, EYE,   m[4], m[5]);
-		getROI(gabor_img,  0, 30, 15, 15, frame_detpar, EYE,   m[6], m[7]);
-		getROI(gabor_img, 30, 30, 20, 10, frame_detpar, MOUTH, m[8], m[9]);
-		print_to_file(m[8]);
-
-		predict(m, output);
-	}
-	free(output);
-}
+// 有时候需要生成测试数据
+//int man ()
+//{
+//	char pic_path[SLEN];
+//	char pic_warehouse[SLEN] = ".\\Pic_warehouse\\";
+//	char pic_name[SLEN];
+//
+//	Mat gabor_img;
+//	Mat m[10];
+//
+//	int* output;
+//	output = (int*)malloc(AU_NUM*2*sizeof(int));
+//	for (int i = 0; i < 10; ++i)
+//	{
+//		memset(pic_path, 0, sizeof(pic_path));
+//		sprintf(pic_name, "%d.png", i);
+//		strcat(pic_path, pic_warehouse);
+//		strcat(pic_path, pic_name);
+//
+//		InitPic(pic_path);
+//
+//		//PrintFaceToFrame();
+//		DetectEyes();
+//		DetectMouth();
+//		DetectNose();
+//		cv::imwrite("g.jpg", frame);
+//		frame = cv::imread("g.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+//		qDebug("frame type: %d, channels: %d", frame.type(), frame.channels());
+//		gabor_img = printGabor();
+//		cv::imwrite("g.jpg", gabor_img);
+//
+//		gabor_img = cv::imread("g.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+//		getROI(gabor_img, 15, 15, 35, 10, frame_detpar, EYE,   m[0], m[1]);
+//		getROI(gabor_img, 15, 15, 15, 15, frame_detpar, EYE,   m[2], m[3]);
+//		getROI(gabor_img, 20, 20, 10, 50, frame_detpar, EYE,   m[4], m[5]);
+//		getROI(gabor_img,  0, 30, 15, 15, frame_detpar, EYE,   m[6], m[7]);
+//		getROI(gabor_img, 30, 30, 20, 10, frame_detpar, MOUTH, m[8], m[9]);
+//		PrintToFile(m[8]);
+//
+//		predict(m, output);
+//	}
+//	free(output);
+//}

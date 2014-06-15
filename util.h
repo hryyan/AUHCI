@@ -37,14 +37,8 @@ using cv::Scalar;
 using cv::Size;
 using cv::sqrt;
 
-#include "source.h"
-
-// 是否使用GPU加速卷积
-//#define USE_CUDA
-//#define USE_OPENCV_GPU
-
-// 是否使用目标识别
-//#define USE_OPENCV_GPU_DETECTION
+// 定义的DEFINE
+#include "predefine.h"
 
 // 定义一些方便使用的类型
 typedef vector<Rect>  vec_Rect;
@@ -145,5 +139,58 @@ QImage* Mat2QImage(Mat& T);
  * @param in: Mat
  */
 void Mat2Txt(string path, Mat_<uchar>& m);
+
+// 这个与DetPar不同，这个关注于同文件相关的信息
+// 而DetPar关注于同文件无关的信息
+struct Coords
+{
+    int left_eye_x;
+    int left_eye_y;
+    int right_eye_x;
+    int right_eye_y;
+    int mouth_x;
+    int mouth_y;
+    int nose_x;
+    int nose_y;
+};
+
+// 这个与DetPar不同，这个关注于同文件相关的信息
+// 而DetPar关注于同文件无关的信息
+struct Information_Face
+{
+    string id;
+    string expression;
+    int frame;
+    string filename;
+    Coords coord;
+    bool final;
+};
+
+// 这张图片的FACS编码，由一个int的数组表示
+// 每一个AU都由一个四位数组成，第一位为LR标签，L为1，R为2，第二位为abcde强度标签，a为1，e为5，无强度则为6
+// 第三四位为AU标签
+struct FACS_Face
+{
+    string id;
+    string expression;
+    int AU[100];
+};
+
+// 人脸区域的enum
+enum FACESECTION
+{
+    EYE, NOSE, MOUTH
+};
+
+// 公用函数，用于判断这个切片没有超出图像范围
+bool IsSliceOk(int x_coord, int y_coord, int left, int right, int top, int bottom);
+bool IsSliceOk(Point tl, Point br);
+
+// 公用函数，用于从图像中切片，并且flip
+Mat GetSlice(const Mat& img, int x_coord, int y_coord, int left, int right, int top, int bottom, bool needflip);
+Mat GetSlice(const Mat& img, Point tl, Point br, bool needflip);
+
+// 把Mat输出到文件中
+void PrintToFile(Mat m);
 
 #endif //UTIL_H
