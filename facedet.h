@@ -21,4 +21,6 @@ vector<DetPar> DetectFaces_(const Image& img, bool multiface, int minwidth);
  */
 Mat printFace();
 
+void InitFaceDet();
+
 #endif //FACEDET_H

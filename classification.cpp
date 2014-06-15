@@ -3,13 +3,6 @@
 // Created by Vincent Yan in 2014/06/5
 
 #include "classification.h"
-#include "source.h"
-#include "facedet.h"
-#include "eyedet.h"
-#include "otherdet.h"
-#include "gabor.h"
-#include "util.h"
-#include "generate.h"
 
 extern Mat frame;
 extern DetPar frame_detpar;
@@ -19,7 +12,7 @@ const int RESIZE_HEIGHT = 150;
 
 const int AU_NUM = 16;
 const int AU_INDEX[AU_NUM] = { 1,  2,  4,  5,  6,  7,  9, 10, 12, 15, 
-                              16, 18, 20, 22, 23, 24};
+							  16, 18, 20, 22, 23, 24};
 const char DIRPATH[SLEN] = ".\\AU_MODEL\\";
 bool isInited = false;
 svm_model* au_models[AU_NUM];
@@ -29,20 +22,25 @@ void Mat2SvmNode(Mat &source, svm_node* &x)
     int height = source.rows;
     int width  = source.cols;
     x = (struct svm_node*)malloc((height*width+1)*sizeof(struct svm_node));
+	uchar *it;
+	int k;
 
-    uchar *it = source.ptr<uchar>(0);
-    int i = 0;
-    for (i = 0; i < height * width; i++)
-    {
-        x[i].index = i+1;
-        if (it[i] == 0)
-            x[i].value = -1.;
-        else if (it[i] == 255)
-            x[i].value = 1.;
-        else
-            x[i].value = -1. + 2. * (double)it[i] / 255.;
-    }
-    x[height*width].index = -1;
+	for (int i = 0; i < source.rows; i++)
+	{
+		it = source.ptr<uchar>(i);
+		for (int j = 0; j < source.cols; j++)
+		{
+			k = i*source.cols+j;
+			x[k].index = k+1;
+			if (it[j] == 0)
+				x[k].value = -1.;
+			else if (it[j] == 255)
+				x[k].value = 1;
+			else
+				x[k].value = -1. + 2. * (double)it[j] / 255;
+		}
+	}
+	x[height*width].index = -1;
 }
 
 void load_all_model()
@@ -54,7 +52,7 @@ void load_all_model()
         memset(modelpath, 0, sizeof(modelpath));
 
         int index = AU_INDEX[i];
-        sprintf(modelname, "AU_%d.txt.model", index);
+        sprintf(modelname, "AU_%d.model", index);
         strcat(modelpath, DIRPATH);
         strcat(modelpath, modelname);
         au_models[i] = svm_load_model(modelpath);
@@ -66,7 +64,7 @@ void predict(Mat *x, int *output)
 {
     if (!isInited)
         load_all_model();
-    output = (int*)malloc(AU_NUM*2*sizeof(int));
+    
     // AU1、AU2
     if (!x[0].empty())
     {
@@ -147,7 +145,7 @@ void predict(Mat *x, int *output)
 	}
 }
 
-void getROI(const Mat &src, int left, int right, int top, int bottom, DetPar det, FACESECTION section, Mat& left_mat, Mat& right_mat)
+void getROI(Mat &src, int left, int right, int top, int bottom, DetPar det, FACESECTION section, Mat& left_mat, Mat& right_mat)
 {
     Point left_tl, left_br, right_tl, right_br;
     if (section == EYE)
@@ -160,8 +158,8 @@ void getROI(const Mat &src, int left, int right, int top, int bottom, DetPar det
 
         if (det.rex != 99999 && det.rey != 99999)
         {
-            right_tl = Point(det.rex-left    , det.rey-top);
-            right_br = Point(det.rex+right   , det.rey+bottom);
+            right_tl = Point(det.rex-right  , det.rey-top);
+            right_br = Point(det.rex+left   , det.rey+bottom);
         }
     }
     else if (section == NOSE)
@@ -199,7 +197,7 @@ void getROI(const Mat &src, int left, int right, int top, int bottom, DetPar det
     if (right_tl.x > 0 && right_tl.y > 0 &&
         right_br.x > 0 && right_br.y > 0)
 	{
-        flip(Mat(src, Rect(right_tl, right_br)), right_mat, 1);
+        flip(Mat(src, Rect(right_tl, right_br)).clone(), right_mat, 1);
 		cv::imwrite("right_mat.jpg", right_mat);
 	}
     else
@@ -231,7 +229,34 @@ void print_to_file(Mat m)
     fclose(fp);
 }
 
-int mai ()
+void classiftInit()
+{
+	load_all_model();
+}
+
+void getAU(bool* au_bool, Mat& gabor_img)
+{
+	Mat m[10];
+	int *output = (int*)malloc(AU_NUM*2*sizeof(int));
+	getROI(gabor_img, 15, 15, 35, 10, frame_detpar, EYE,   m[0], m[1]);
+	getROI(gabor_img, 15, 15, 15, 15, frame_detpar, EYE,   m[2], m[3]);
+	getROI(gabor_img, 20, 20, 10, 50, frame_detpar, EYE,   m[4], m[5]);
+	getROI(gabor_img,  0, 30, 15, 15, frame_detpar, EYE,   m[6], m[7]);
+	getROI(gabor_img, 30, 30, 20, 10, frame_detpar, MOUTH, m[8], m[9]);
+	
+	predict(m, output);
+	
+	for (int i = 0; i < AU_NUM; i++)
+	{
+		if (output[i*2] || output[i*2+1])
+			au_bool[i] = true;
+		else
+			au_bool[i] = false;
+	}
+	free(output);
+}
+
+int man ()
 {
 	char pic_path[SLEN];
 	char pic_warehouse[SLEN] = ".\\Pic_warehouse\\";
@@ -241,7 +266,7 @@ int mai ()
 	Mat m[10];
 
 	int* output;
-
+	output = (int*)malloc(AU_NUM*2*sizeof(int));
 	for (int i = 0; i < 10; ++i)
 	{
 		memset(pic_path, 0, sizeof(pic_path));
@@ -249,7 +274,7 @@ int mai ()
 		strcat(pic_path, pic_warehouse);
 		strcat(pic_path, pic_name);
 
-		isPicInited(pic_path);
+		InitPic(pic_path);
 
 		printFace();
 		cv::resize(frame, frame, Size(RESIZE_WIDTH, RESIZE_HEIGHT));
@@ -266,11 +291,11 @@ int mai ()
 
 		gabor_img = cv::imread("g.jpg", CV_LOAD_IMAGE_GRAYSCALE);
 		getROI(gabor_img, 15, 15, 35, 10, frame_detpar, EYE,   m[0], m[1]);
-		print_to_file(m[0]);
 		getROI(gabor_img, 15, 15, 15, 15, frame_detpar, EYE,   m[2], m[3]);
 		getROI(gabor_img, 20, 20, 10, 50, frame_detpar, EYE,   m[4], m[5]);
 		getROI(gabor_img,  0, 30, 15, 15, frame_detpar, EYE,   m[6], m[7]);
 		getROI(gabor_img, 30, 30, 20, 10, frame_detpar, MOUTH, m[8], m[9]);
+		print_to_file(m[8]);
 
 		predict(m, output);
 	}

@@ -1,100 +1,119 @@
 // facialexpression.h: 主程序，用于识别表情与互动
 //
-// Created by Vincent Yan in 2014/03/17
+// Created by Vincent Yan in 2014/3/17
+// Modifid by Vincent Yan in 2014/6/15
 
 #ifndef FACIALEXPRESSION_H
 #define FACIALEXPRESSION_H
 
 #include <QtGui/QMainWindow>
 #include <QFileDialog>
+#include "ui_facialexpression_x64.h"
 #include "util.h"
 #include "source.h"
 #include "facedet.h"
 #include "gabor.h"
-#include "ui_facialexpression_x64.h"
+#include "classification.h"
 
-// 定义函数指针
-typedef Mat (*pf)(void);
+// 用于显示AU状态的小灯泡的数量
+static const int kBulbNum = 16;
 
-class FacialExpression_x64 : public QMainWindow
+// 每帧的间隔，设置为41.6可以实现24帧的实时
+static int interval = 100;
+
+// 存储AU的队列
+static const int kAU[kBulbNum] = {1, 2, 4, 5, 6, 7, 9, 10, 12, 15, 16, 18, 20 ,22, 23, 24};
+
+class FacialExpressionX64 : public QMainWindow
 {
     Q_OBJECT
-    
-    public:
-    FacialExpression_x64(QWidget *parent = 0, Qt::WFlags flags = 0);
-    ~FacialExpression_x64();
-    
-    // 后台play函数，用于在label上绑定pf函数
-    void play_(QLabel* label, Mat(*pf)(void));
-    
-    // 初始化CV部分
-    bool initCV();
-    
-    public slots:
-    
-    // 使用timer激活的slot，用于同步播放所有label上的pf
-    void play();
-    
-    // 按钮slot，把播放Camera的label和pf放进vector中
-    void play_camera();
-    
-    // 按钮slot，把播放Video的label和pf放进vector中
-    void play_video();
-    
-    // 按钮slot，把播放Signal的label和pf放进vector中
-    void play_face();
-    
-    // 按钮slot，把播放Frequency的label和pf放进vector中
-    void play_gabor();
-    
-    // 按钮slot，把播放Picture的label和pf放进vector中
-    void play_pic();
-    
-    // 按钮slot，对Face label进行截图
-    void capture_face();
-    
-    // 按钮slot，对Gabor label进行截图
-    void capture_gabor();
-    
-    // 按钮slot，对截图保存路径进行修改
-    void change_directory();
-    
-    // 按钮slot，停止一切播放，并且清除label
-    void stop_all();
-    
-    // Spin Slot，更改帧率
-    void change_interval(int);
-    
-    private:
+
+public:
+    FacialExpressionX64(QWidget *parent=0, Qt::WFlags flags=0);
+    ~FacialExpressionX64();
+
+    // 初始化CV环境
+    bool InitCV();
+
+    // 初始化SVM环境
+    bool InitSVM();
+
+    // 用于进行分类
+    void ClassifyAndDisplay(Mat&);
+
+    // 用于在input_label显示
+    void DisplayInput();
+
+public slots:
+    // 用于处理一帧frame(extern Mat frame)
+    void ProcessOneFrame();
+
+    // 用于处理一张图片
+    void ProcessPic();
+
+    // 用于处理视频序列
+    void ProcessVideo();
+
+    // 用于处理Web Camera
+    void ProcessCamera();
+
+    // 用于处理一连串的图像
+    void ProcessSequence();
+
+    // 停止所有处理
+    void StopAll();
+
+    // 对Face进行截图
+    void CaptureFace();
+
+    // 对Gabor进行截图
+    void CaptureGabor();
+
+    // 对截图保存的路径进行控制
+    void ChangeDirectory();
+
+    // TODO：操作帧率
+    void ChangeInterval(int);
+
+private:
+    // 使用Qt Designer设计的ui
     Ui::FacialExpression_x64Class ui;
-    
+
     // UI控件的指针
     QGroupBox *input_group;
     QGroupBox *face_group;
     QGroupBox *gabor_group;
-    
+
     QPushButton *video_input_button;
     QPushButton *camera_input_button;
     QPushButton *picture_input_button;
+    QPushButton *sequence_input_button;
     QPushButton *capture_face_button;
     QPushButton *capture_gabor_button;
     QPushButton *change_directory_button;
     QPushButton *stop_button;
-    
+
     QLabel *input_label;
     QLabel *face_label;
     QLabel *gabor_label;
-    
+
     QCheckBox *show_face_checkbox;
     QCheckBox *show_gabor_checkbox;
-    
+    QCheckBox *classify_checkbox;
+
     QSpinBox *frames_spinbox;
-    
-    // 存储label和pf的vector，在play中调用
-    vector<pair<QLabel*, pf> > lpfv;
-    
-    // 截图保存的默认路径
+
+    // 截图保存的路径
     QString screen_shot_directory;
+
+    // 两个显示AU状态的小灯泡
+    QPixmap *on_pixmap;
+    QPixmap *off_pixmap;
+
+    // 用于显示AU状态和AU名字的Label
+    QLabel *label_vec[2*kBulbNum];
+
+    bool can_process;
 };
 
 #endif // FACIALEXPRESSION_H

@@ -103,7 +103,7 @@ public:
      * @param vecInfo 人脸图片的信息
      * @param section 需要哪一个局部的Slice
      */
-    void outputTxt(vector<Information_Face> vecInfo, vector<FACS_Face> vecFACS, FACESECTION section, int left, int right, int top, int buttom, int au);
+    void outputTxt(vector<Information_Face>& vecInfo, vector<FACS_Face>& vecFACS, FACESECTION section, int left, int right, int top, int buttom, int au);
 
     /**
      * 原先的FACS信息由python脚本转换成XML格式

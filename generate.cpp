@@ -714,7 +714,7 @@ int outputSlice(vector<Mat_<uchar>>& primeMatV, vector<Mat_<uchar>>& finalMatV, 
 	return sp;
 }
 
-void CK_Preprocessor::outputTxt(vector<Information_Face> vecInfo, vector<FACS_Face> vecFACS, FACESECTION section, int left, int right, int top, int bottom, int au)
+void CK_Preprocessor::outputTxt(vector<Information_Face>& vecInfo, vector<FACS_Face>& vecFACS, FACESECTION section, int left, int right, int top, int bottom, int au)
 {
 	// 一些通用的定义
 	vector<Mat_<uchar>> primeMatV;					// 每个sequence的第一张的Slice
@@ -746,7 +746,7 @@ void CK_Preprocessor::outputTxt(vector<Information_Face> vecInfo, vector<FACS_Fa
 			for (int j = 0; j < b->cols; j++)
 			{
 				memset(s, 0, sizeof(s));
-				sprintf(s, "%d:%d ", i*b->cols+j+1, it[i*b->cols+j]);
+				sprintf(s, "%d:%d ", i*b->cols+j+1, it[j]);
 				fputs(s, fp);
 				if (i*b->cols+j == 1000)
 					fflush(fp);
@@ -815,7 +815,7 @@ void CK_Preprocessor::outputTxt(vector<Information_Face> vecInfo, vector<FACS_Fa
 	qDebug("Positive sample: %d, Negative sample: %d", positive_sample, negative_sample);
 }
 
-int main()
+int min()
 {
 	CK_Preprocessor CK_preprocessor(QString("D:\\ck\\cohn-kanade\\cohn-kanade"));
 	//CK_preprocessor.generator();
@@ -829,7 +829,7 @@ int main()
 	 //CK_preprocessor.outputTxt(a, b, EYE, 15, 15, 15, 15, 5);	// AU4、AU5
 	 //CK_preprocessor.outputTxt(a, b, EYE, 20, 20, 10, 50, 7);	// AU6、AU7
 	 //CK_preprocessor.outputTxt(a, b, EYE, 0, 30, 15, 15, 9);	// AU9
-	 //CK_preprocessor.outputTxt(a, b, MOUTH, 30, 30, 20, 10, 24);	// AU10、AU12、AU15、AU16、AU18、AU20、AU22、AU23、AU24
+	 CK_preprocessor.outputTxt(a, b, MOUTH, 30, 30, 20, 10, 20);	// AU10、AU12、AU15、AU16、AU18、AU20、AU22、AU23、AU24
 
 	return 0;
 }

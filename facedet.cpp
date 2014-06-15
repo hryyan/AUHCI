@@ -180,6 +180,12 @@ vector<DetPar> DetectFaces_(const Image &img, bool multiface, int minwidth)
     return detpars_;
 }
 
+void InitFaceDet()
+{
+    OpenDetector(&facedet_g, "haarcascade_frontalface_alt2.xml");
+    OpenDetector(&facedet_gpu_g, "haarcascade_frontalface_alt2.xml");
+}
+
 /**
  * 打印人脸
  * @return QImage

@@ -517,6 +517,11 @@ void CUDA_Gabor::getFilterMagnitude(Mat &src, int index, Mat &output)
     magnitude(outReal, outImag, output);
 }
 
+void InitGabor()
+{
+    gabor_cuda_g.Init(Size(iSize, iSize), sqrt(2.0), 1, CV_32F);
+}
+
 Mat printGabor()
 {
     qDebug("Starting GaborFilter...");

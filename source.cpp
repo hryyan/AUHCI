@@ -17,11 +17,11 @@ VideoCapture cap;
 * 检测摄像头是否被正确开启
 * @return         是否已经正确开启
 */
-bool isCameraInited()
+bool InitCamera()
 {
     cap = VideoCapture(0);
     if (!cap.isOpened())
-    return false;
+        return false;
     return true; 
 }
 
@@ -30,11 +30,11 @@ bool isCameraInited()
 * @param  in:    视频的地址
 * @return        是否被正确开启
 */
-bool isVideoInited(string path)
+bool InitVideo(string path)
 {
     cap = VideoCapture(path);
     if (!cap.isOpened())
-    return false;
+        return false;
     return true;
 }
 
@@ -43,7 +43,7 @@ bool isVideoInited(string path)
 * @param  in:  照片的地址
 * @return        是否已经被打开
 */
-bool isPicInited(string path)
+bool InitPic(string path)
 {
     frame = cv::imread(path, -1);
     if (frame.rows == 0 || frame.cols == 0)
@@ -54,16 +54,3 @@ bool isPicInited(string path)
 /**
 * TODO: 打印视频流与打印照片没有被正确的区分开
 */
-
-/**
-* 如果Capture被打开，则认为打开摄像头或者视频，如果Capture没被打开，则认为打开照片
-* @return        返回的是frame
-*/
-Mat printScreen()
-{
-    if (cap.isOpened())
-    cap >> frame;
-    
-    return frame;
-}
- 

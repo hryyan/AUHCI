@@ -116,6 +116,7 @@ private:
     DISALLOW_COPY_AND_ASSIGN(CUDA_Gabor);
 };
 
+void InitGabor();
 Mat printGabor();
 Mat printGabor_(Mat& m, int nu, int mu);
 
