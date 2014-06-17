@@ -89,6 +89,9 @@ void CK_Preprocessor::Output40Gabor()
     cv::gpu::GpuMat g_src, g_dst;
     int index;
 
+	// 初始化检测器
+	InitFaceDet();
+
     #ifdef OUTPUT_XML
     FILE *fp = fopen(kPositionInformation, "w+");
     tinyxml2::XMLPrinter printer(fp);
@@ -636,11 +639,13 @@ void OutputSliceHelper(vector<Mat_<uchar>>& primeMatV, vector<Mat_<uchar>>& fina
             roi = GetSlice(img, x_coord, y_coord, left, right, top, bottom, needFlip);
             if (info.frame == 1)
             {
+				PrintToFile(roi, "left");
                 primeMatV.push_back(roi);
                 imwrite(dstpath, roi);
             }
             else
             {
+				PrintToFile(roi, "right");
                 finalMatV.push_back(roi);
                 finalFACS.push_back(getResponseFACS(vecFACS, info));
                 imwrite(dstpath, roi);
@@ -706,6 +711,7 @@ int OutputSlice(vector<Mat_<uchar>>& primeMatV, vector<Mat_<uchar>>& finalMatV, 
         {
             x_coord = b->coord.right_eye_x;
             y_coord = b->coord.right_eye_y;
+			qDebug("right_eye_x: %d, right_eye_y: %d", x_coord, y_coord);
         }
         else if (section == NOSE)
             getOffsetNose(&(*b), x_coord, y_coord, vecInfo);
@@ -750,7 +756,7 @@ void CK_Preprocessor::OutputAULabelSlice(vector<Information_Face>& vecInfo, vect
     int positive_sample = 0;
 
     char filename[20];
-    sprintf(filename, "AU_%d.txt", au);
+    sprintf(filename, "AU_RESOURCE/AU_%d.txt", au);
 
     // 对指定区域进行Slice
     int sp = OutputSlice(primeMatV, finalMatV, finalFACS, vecInfo, vecFACS, left, right, top, bottom, section);
@@ -762,6 +768,7 @@ void CK_Preprocessor::OutputAULabelSlice(vector<Information_Face>& vecInfo, vect
         fputs("0 ", fp);
         char s[50];
         uchar *it;
+
         for (int i = 0; i < b->rows; i++)
         {
             it = b->ptr<uchar>(i);
@@ -784,6 +791,15 @@ void CK_Preprocessor::OutputAULabelSlice(vector<Information_Face>& vecInfo, vect
     for (vector<Mat_<uchar>>::iterator b = finalMatV.begin(); b != finalMatV.end(); b++, i++)
     {
         memset(label, 0, sizeof(label));
+#ifdef WITH_ID_EXPRESSION
+		char id_expression[SLEN];
+		memset(id_expression, 0, sizeof(SLEN));
+		strcat(id_expression, finalFACS[i].id.c_str());
+		strcat(id_expression, " ");
+		strcat(id_expression, finalFACS[i].expression.c_str());
+		strcat(id_expression, " ");
+		fputs(id_expression, fp);
+#endif
 
         // 左眼
         if (i < sp)
@@ -841,15 +857,15 @@ void CK_Preprocessor::OutputAULabelSlice(vector<Information_Face>& vecInfo, vect
 //int main()
 //{
 //    CK_Preprocessor CK_preprocessor(QString("D:\\ck\\cohn-kanade\\cohn-kanade"));
-//    //CK_preprocessor.generator();
-//    //CK_preprocessor.getL2();
-//    //CK_preprocessor.getL2_in_memory();
+//    //CK_preprocessor.Output40Gabor();
+//    //CK_preprocessor.Merge40Gabor();
+//    //CK_preprocessor.OutputGabor();
 //
 //     vector<Information_Face> a = CK_preprocessor.OutputInformationFromXML();
 //     vector<FACS_Face> b = CK_preprocessor.OutputFACSFromXML();
 //
 //     //CK_preprocessor.OutputAULabelSlice(a, b, EYE, 15, 15, 35, 10, 2);   // AU1、AU2
-//     CK_preprocessor.OutputAULabelSlice(a, b, EYE, 15, 15, 15, 15, 5); // AU4、AU5
+//     CK_preprocessor.OutputAULabelSlice(a, b, EYE, 15, 15, 15, 15, 4); // AU4、AU5
 //     //CK_preprocessor.OutputAULabelSlice(a, b, EYE, 20, 20, 10, 50, 7); // AU6、AU7
 //     //CK_preprocessor.OutputAULabelSlice(a, b, EYE, 0, 30, 15, 15, 9);  // AU9
 //     //CK_preprocessor.OutputAULabelSlice(a, b, MOUTH, 30, 30, 20, 10, 20);    // AU10、AU12、AU15、AU16、AU18、AU20、AU22、AU23、AU24

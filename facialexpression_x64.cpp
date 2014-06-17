@@ -128,7 +128,7 @@ bool FacialExpressionX64::InitCV()
  */
 bool FacialExpressionX64::InitSVM()
 {
-    classiftInit();
+    ClassifyInit();
     return true;
 }
 
@@ -191,6 +191,8 @@ void FacialExpressionX64::ProcessOneFrame()
             // 第三个是是否获得AU
             if (classify_checkbox->isChecked())
             {
+				cv::imwrite("g.jpg", gabor);
+				gabor = cv::imread("g.jpg", CV_LOAD_IMAGE_GRAYSCALE);
                 ClassifyAndDisplay(gabor);
             }
         }

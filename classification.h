@@ -11,5 +11,14 @@
 #include "util.h"
 #include "generate.h"
 
-void classiftInit();
+// 目前最大的Slice有2400个特征，目前5000个特征已经够了
+static const int kFeatureNum = 5000;
+
+struct ScaleFactor
+{
+    double feature_min[kFeatureNum];
+    double feature_max[kFeatureNum];
+};
+
+void ClassifyInit();
 void getAU(bool* au, Mat& gabor_img);

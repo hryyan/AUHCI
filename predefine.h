@@ -27,7 +27,9 @@ static const double Y_OFFSET = 50.;
 //#define USE_OPENCV_GPU_DETECTION
 
 // 在生成数据的时候，是否需要输出XML或者计算Gabor特征或者是否需要输出检测到人脸之后的照片
-//#define OUTPUT_XML
+#define OUTPUT_XML
 //#define CALCULATE_GABOR
 //#define SAVE_FACE
+#define WITH_ID_EXPRESSION
+
 #endif // PREDEFINE_H

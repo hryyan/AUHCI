@@ -166,9 +166,9 @@ Mat GetSlice(const Mat& img, Point tl, Point br, bool needflip)
  * 把Mat输出到文件中
  * @param m Mat
  */
-void PrintToFile(Mat m)
+void PrintToFile(Mat m, char *name)
 {
-    FILE* fp = fopen("mat", "wb+");
+    FILE* fp = fopen(name, "wb+");
     fputs("1 ", fp);
     char s[50];
     double value;

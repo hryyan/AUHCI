@@ -191,6 +191,6 @@ Mat GetSlice(const Mat& img, int x_coord, int y_coord, int left, int right, int 
 Mat GetSlice(const Mat& img, Point tl, Point br, bool needflip);
 
 // 把Mat输出到文件中
-void PrintToFile(Mat m);
+void PrintToFile(Mat m, char* name);
 
 #endif //UTIL_H

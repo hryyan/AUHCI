@@ -3,142 +3,256 @@
 // Created by Vincent Yan in 2014/06/5
 
 #include "classification.h"
+#include <algorithm>
 
 extern Mat frame;
 extern DetPar frame_detpar;
 
-const int AU_NUM = 16;
-const int AU_INDEX[AU_NUM] = { 1,  2,  4,  5,  6,  7,  9, 10, 12, 15, 
+static const int kAuNum = 16;
+static const int kAuIndex[kAuNum] = { 1,  2,  4,  5,  6,  7,  9, 10, 12, 15, 
 							  16, 18, 20, 22, 23, 24};
-const char DIRPATH[SLEN] = ".\\AU_MODEL\\";
-bool isInited = false;
-svm_model* au_models[AU_NUM];
+static const char kDirPath[SLEN] = ".\\AU_MODEL\\";
+static bool is_inited = false;
 
-void Mat2SvmNode(Mat &source, svm_node* &x)
+svm_model* au_models[kAuNum];
+ScaleFactor* au_scales[kAuNum];
+
+double lower = -1.0;
+double upper = 1.0;
+
+void LoadAllModels()
 {
-    int height = source.rows;
-    int width  = source.cols;
-    x = (struct svm_node*)malloc((height*width+1)*sizeof(struct svm_node));
-	uchar *it;
-	int k;
+    char model_name[40], model_path[SLEN];
 
-	for (int i = 0; i < source.rows; i++)
-	{
-		it = source.ptr<uchar>(i);
-		for (int j = 0; j < source.cols; j++)
-		{
-			k = i*source.cols+j;
-			x[k].index = k+1;
-			if (it[j] == 0)
-				x[k].value = -1.;
-			else if (it[j] == 255)
-				x[k].value = 1;
-			else
-				x[k].value = -1. + 2. * (double)it[j] / 255;
-		}
-	}
-	x[height*width].index = -1;
+    for (int i = 0; i < kAuNum; i++)
+    {
+        memset(model_path, 0, sizeof(model_path));
+
+        int index = kAuIndex[i];
+        sprintf(model_name, "AU_%d.model", index);
+        strcat(model_path, kDirPath);
+        strcat(model_path, model_name);
+        au_models[i] = svm_load_model(model_path);
+    }
 }
 
-void load_all_model()
+char* readline(FILE *input)
 {
-    char modelname[40], modelpath[SLEN];
+    int len;
+	char *line = NULL;
+	int max_line_len = 1024;
+    line = (char *) malloc(max_line_len*sizeof(char));
+    if(fgets(line,max_line_len,input) == NULL)
+        return NULL;
 
-    for (int i = 0; i < AU_NUM; i++)
+    while(strrchr(line,'\n') == NULL)
     {
-        memset(modelpath, 0, sizeof(modelpath));
-
-        int index = AU_INDEX[i];
-        sprintf(modelname, "AU_%d.model", index);
-        strcat(modelpath, DIRPATH);
-        strcat(modelpath, modelname);
-        au_models[i] = svm_load_model(modelpath);
+        max_line_len *= 2;
+        line = (char *) realloc(line, max_line_len);
+        len = (int) strlen(line);
+        if(fgets(line+len,max_line_len-len,input) == NULL)
+            break;
     }
-    isInited = true;
+    return line;
+}
+
+ScaleFactor* LoadScale(char *path)
+{
+    int max_index = 0;
+    int idx;
+    double fmin, fmax;
+    ScaleFactor *scale_factor_ptr = new ScaleFactor();
+	memset(scale_factor_ptr->feature_max, 0, sizeof(scale_factor_ptr->feature_max));
+	memset(scale_factor_ptr->feature_min, 0, sizeof(scale_factor_ptr->feature_min));
+    double *feature_max_ptr = scale_factor_ptr->feature_max;
+    double *feature_min_ptr = scale_factor_ptr->feature_min;
+
+    // step1: 找出特征的数量
+    FILE* fp = fopen(path, "r");
+    readline(fp);
+    readline(fp);
+
+    while (fscanf(fp, "%d %*f %*f\n", &idx) == 1)
+        max_index = std::max(idx, max_index);
+    rewind(fp);
+
+    // step2: 把所有特征的值进行预定义
+    for (int i = 0; i <= max_index; i++)
+    {
+        feature_max_ptr[i] = -DBL_MAX;
+        feature_min_ptr[i] = DBL_MAX;
+    }
+
+    // step3: 读取range文件，对特征值的范围进行预定义
+    if (fgetc(fp) == 'x')
+    {
+        if (fscanf(fp, "%lf %lf\n", &lower, &upper) != 2)
+        {
+            qDebug("Range Error!");
+            exit(1);            
+        }
+        while (fscanf(fp, "%d %lf %lf\n", &idx, &fmin, &fmax)==3)
+        {
+            feature_max_ptr[idx] = fmax;
+            feature_min_ptr[idx] = fmin;
+        }
+    }
+    fclose(fp);
+    return scale_factor_ptr;
+}
+
+void LoadAllScales()
+{
+    char scale_name[40], scale_path[SLEN];
+
+    for (int i = 0; i <kAuNum; i++)
+    {
+        memset(scale_path, 0, sizeof(scale_path));
+
+        int index = kAuIndex[i];
+        sprintf(scale_name, "AU_%d.range", index);
+        strcat(scale_path, kDirPath);
+        strcat(scale_path, scale_name);
+        au_scales[i] = LoadScale(scale_path);
+    }
+}
+
+double Output(int idx, uchar value, int scale_index)
+{
+	double v = value;
+    double* feature_max_ptr = au_scales[scale_index]->feature_max;
+    double* feature_min_ptr = au_scales[scale_index]->feature_min;
+
+    if (feature_max_ptr[idx+1] == feature_min_ptr[idx+1])
+        return 0;
+
+    if (v == feature_min_ptr[idx+1])
+        v = lower;
+    else if (v == feature_max_ptr[idx+1])
+        v = upper;
+    else
+        v = lower + (upper-lower) *
+                (v-feature_min_ptr[idx+1]) /
+                (feature_max_ptr[idx+1]-feature_min_ptr[idx+1]);
+    return v;
+}
+
+svm_node* Scale(Mat &source, int scale_index)
+{
+    int idx;
+	svm_node* nodes = (svm_node*)malloc((source.cols*source.rows+1)*sizeof(svm_node));
+    FILE* fp = fopen("scaled", "w+");
+    char buff[50];
+    for (int i = 0; i < source.rows; i++)
+    {
+        uchar* it = source.ptr<uchar>(i);
+        for (int j = 0; j < source.cols; j++)
+        {
+            idx = i*source.cols+j;
+			//qDebug("value: %d, index: %d", it[j], idx);
+            nodes[idx].value = Output(i*source.cols+j, it[j], scale_index);
+            nodes[idx].index = idx+1;
+			//qDebug("value: %g, index: %d", nodes[idx].value, idx);
+            fprintf(fp, "%d:%g ", nodes[idx].index, nodes[idx].value);
+        }
+        fflush(fp);
+    }
+    nodes[source.rows*source.cols].index = -1;
+    fflush(fp);
+    fclose(fp);
+	return nodes;
+}
+
+void ClassifyInit()
+{
+	LoadAllModels();
+	LoadAllScales();
+	is_inited = true;
+}
+
+int PredictHelper(Mat& x, int index)
+{
+	svm_node* nodes = Scale(x, index);
+	int on = ceil(svm_predict(au_models[index], nodes));
+	free(nodes);
+	return on;
 }
 
 void predict(Mat *x, int *output)
 {
-    if (!isInited)
-        load_all_model();
+    if (!is_inited)
+        ClassifyInit();
     
     // AU1、AU2
     if (!x[0].empty())
     {
-        svm_node *nodes;
-        Mat2SvmNode(x[0], nodes);
-		QTime time1 = QTime::currentTime();
-        output[0] = ceil(svm_predict(au_models[0], nodes));
-		output[1] = ceil(svm_predict(au_models[0], nodes));
-        output[2] = ceil(svm_predict(au_models[1], nodes));
-		output[3] = ceil(svm_predict(au_models[1], nodes));
-		QTime time2 = QTime::currentTime();
-		qDebug() << time1.msecsTo(time2);
-		free(nodes);
+		output[0] = PredictHelper(x[0], 0);
+		output[1] = PredictHelper(x[1], 0);
+
+		output[2] = PredictHelper(x[0], 1);
+		output[3] = PredictHelper(x[1], 1);
     }
 
     // AU4、AU5
     if (!x[1].empty())
     {
-        svm_node *nodes;
-        Mat2SvmNode(x[1], nodes);
-        output[4] = ceil(svm_predict(au_models[2], nodes));
-		output[5] = ceil(svm_predict(au_models[2], nodes));
-		output[6] = ceil(svm_predict(au_models[3], nodes));
-        output[7] = ceil(svm_predict(au_models[3], nodes));
-		free(nodes);
+		output[4] = PredictHelper(x[2], 2);
+		output[5] = PredictHelper(x[3], 2);
+
+		output[6] = PredictHelper(x[2], 3);
+		output[7] = PredictHelper(x[3], 3);
     }
     // AU6、AU7
     if (!x[2].empty())
     {
-        svm_node *nodes;
-        Mat2SvmNode(x[2], nodes);
-        output[8] = ceil(svm_predict(au_models[4], nodes));
-		output[9] = ceil(svm_predict(au_models[4], nodes));
-		output[10] = ceil(svm_predict(au_models[5], nodes));
-        output[11] = ceil(svm_predict(au_models[5], nodes));
-		free(nodes);
+		output[8] = PredictHelper(x[4], 4);
+		output[9] = PredictHelper(x[5], 4);
+
+		output[10] = PredictHelper(x[4], 5);
+		output[11] = PredictHelper(x[5], 5);
     }
 
     // AU9
     if (!x[3].empty())
     {
-        svm_node *nodes;
-        Mat2SvmNode(x[3], nodes);
-        output[12] = ceil(svm_predict(au_models[6], nodes));
-		output[13] = ceil(svm_predict(au_models[6], nodes));
-		free(nodes);
+		output[12] = PredictHelper(x[6], 6);
+		output[13] = PredictHelper(x[7], 6);
     }
 
     // AU10、AU12、AU15、AU16、AU18、AU20、AU22、AU23、AU24
     if (!x[4].empty())
     {
-        svm_node *nodes;
-        Mat2SvmNode(x[4], nodes);
-        output[14] = ceil(svm_predict(au_models[7], nodes));
-		output[15] = ceil(svm_predict(au_models[7], nodes));
-		output[16] = ceil(svm_predict(au_models[8], nodes));
-		output[17] = ceil(svm_predict(au_models[8], nodes));
-		output[18] = ceil(svm_predict(au_models[9], nodes));        
-		output[19] = ceil(svm_predict(au_models[9], nodes));
-        output[20] = ceil(svm_predict(au_models[10], nodes));
-		output[21] = ceil(svm_predict(au_models[10], nodes));
-        output[22] = ceil(svm_predict(au_models[11], nodes));
-		output[23] = ceil(svm_predict(au_models[11], nodes));
-        output[24] = ceil(svm_predict(au_models[12], nodes));
-		output[25] = ceil(svm_predict(au_models[12], nodes));
-        output[26] = ceil(svm_predict(au_models[13], nodes));
-		output[27] = ceil(svm_predict(au_models[13], nodes));
-        output[28] = ceil(svm_predict(au_models[14], nodes));
-		output[29] = ceil(svm_predict(au_models[14], nodes));
-        output[30] = ceil(svm_predict(au_models[15], nodes));
-		output[31] = ceil(svm_predict(au_models[15], nodes));
-		free(nodes);
+		output[14] = PredictHelper(x[8], 7);
+		output[15] = PredictHelper(x[9], 7);
+
+		output[16] = PredictHelper(x[8], 8);
+		output[17] = PredictHelper(x[9], 8);
+
+		output[18] = PredictHelper(x[8], 9);
+		output[19] = PredictHelper(x[9], 9);
+
+		output[20] = PredictHelper(x[8], 10);
+		output[21] = PredictHelper(x[9], 10);
+
+		output[22] = PredictHelper(x[8], 11);
+		output[23] = PredictHelper(x[9], 11);
+
+		output[24] = PredictHelper(x[8], 12);
+		output[25] = PredictHelper(x[9], 12);
+
+		output[26] = PredictHelper(x[8], 13);
+		output[27] = PredictHelper(x[9], 13);
+
+		output[28] = PredictHelper(x[8], 14);
+		output[29] = PredictHelper(x[9], 14);
+
+		output[30] = PredictHelper(x[8], 15);
+		output[31] = PredictHelper(x[9], 15);
     }
-	for (int i = 0; i < AU_NUM; i++)
+	for (int i = 0; i < kAuNum; i++)
 	{
 		if (output[i*2] || output[i*2+1])
-			qDebug("%d, AU_%d; true\n", i, AU_INDEX[i]);
+			qDebug("%d, AU_%d; true\n", i, kAuIndex[i]);
 	}
 }
 
@@ -186,32 +300,28 @@ void getROI(Mat &src, int left, int right, int top, int bottom, DetPar det, FACE
 
     if (IsSliceOk(left_tl, left_br))
     {
-		qDebug("tl.x: %d, tl.y: %d, br.x: %d, br.y: %d", left_tl.x, left_tl.y, left_br.x, left_br.y);
         left_mat = GetSlice(src, left_tl, left_br, false);
         // qDebug("lefttop_x: %d; lefttop_y: %d; rightbottom_x: %d; rightbottom_y: %d", left_tl.x, left_tl.y, left_br.x, left_br.y);
         cv::imwrite("left_mat.jpg", left_mat);
+		PrintToFile(left_mat, "left");
     }
     else
         left_mat  = Mat();
 
     if (IsSliceOk(right_tl, right_br))
 	{
-        right_mat = GetSlice(src, left_tl, left_br, true);
+        right_mat = GetSlice(src, right_tl, right_br, true);
 		cv::imwrite("right_mat.jpg", right_mat);
+		PrintToFile(right_mat, "right");
 	}
     else
         right_mat = Mat();
 }
 
-void classiftInit()
-{
-	load_all_model();
-}
-
 void getAU(bool* au_bool, Mat& gabor_img)
 {
 	Mat m[10];
-	int *output = (int*)malloc(AU_NUM*2*sizeof(int));
+	int *output = (int*)malloc(kAuNum*2*sizeof(int));
 	getROI(gabor_img, 15, 15, 35, 10, frame_detpar, EYE,   m[0], m[1]);
 	getROI(gabor_img, 15, 15, 15, 15, frame_detpar, EYE,   m[2], m[3]);
 	getROI(gabor_img, 20, 20, 10, 50, frame_detpar, EYE,   m[4], m[5]);
@@ -220,7 +330,7 @@ void getAU(bool* au_bool, Mat& gabor_img)
 	
 	predict(m, output);
 	
-	for (int i = 0; i < AU_NUM; i++)
+	for (int i = 0; i < kAuNum; i++)
 	{
 		if (output[i*2] || output[i*2+1])
 			au_bool[i] = true;
@@ -241,7 +351,7 @@ void getAU(bool* au_bool, Mat& gabor_img)
 //	Mat m[10];
 //
 //	int* output;
-//	output = (int*)malloc(AU_NUM*2*sizeof(int));
+//	output = (int*)malloc(kAuNum*2*sizeof(int));
 //	for (int i = 0; i < 10; ++i)
 //	{
 //		memset(pic_path, 0, sizeof(pic_path));
@@ -272,4 +382,17 @@ void getAU(bool* au_bool, Mat& gabor_img)
 //		predict(m, output);
 //	}
 //	free(output);
+//}
+
+//int main()
+//{
+//	LoadAllScales();
+//
+//    double* feature_max_ptr = au_scales[0]->feature_max;
+//    double* feature_min_ptr = au_scales[0]->feature_min;
+//
+//    for (int i = 1; i < 30*45; i++)
+//    {
+//        qDebug("%f %f", feature_min_ptr[i], feature_max_ptr[i]);
+//    }
 //}
