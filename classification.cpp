@@ -294,7 +294,7 @@ void getROI(Mat &src, int left, int right, int top, int bottom, DetPar det, FACE
             left_br  = Point(det.mouthx      , det.mouthy+bottom);
 
             right_tl = Point(det.mouthx      , det.mouthy-top);
-            right_br = Point(det.mouthx+right, det.mouthy+bottom);
+            right_br = Point(det.mouthx+left, det.mouthy+bottom);
         }
     }
 

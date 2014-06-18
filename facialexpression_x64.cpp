@@ -5,6 +5,8 @@
 
 #include "facialexpression_x64.h"
 
+// 视频流的传递
+extern VideoCapture cap;
 extern Mat frame;
 extern DetPar frame_detpar;
 
@@ -157,9 +159,12 @@ void FacialExpressionX64::ClassifyAndDisplay(Mat &gabor_img)
  */
 void FacialExpressionX64::DisplayInput()
 {
-    QImage* img = Mat2QImage(frame);
-    input_label->setPixmap(QPixmap::fromImage(*img));
-    free(img);
+	if (frame.rows != 0 && frame.cols != 0)
+	{
+		QImage* img = Mat2QImage(frame);
+		input_label->setPixmap(QPixmap::fromImage(*img));
+		free(img);
+	}
 }
 
 /**
@@ -171,31 +176,33 @@ void FacialExpressionX64::ProcessOneFrame()
     QImage *img_to_be_print;
     // 检测三个checkBox
     // 第一个是是否检测脸部
-    if (show_face_checkbox->isChecked())
+    if (show_face_checkbox->isChecked() && frame.rows != 0 && frame.cols != 0)
     {
         PrintFaceToFrame();
 		DetectEyes();
 		//DetectMouth();
-        img_to_be_print = Mat2QImage(frame);
-        face_label->setPixmap(QPixmap::fromImage(*img_to_be_print));
-        free(img_to_be_print);
+		img_to_be_print = Mat2QImage(frame);
+		face_label->setPixmap(QPixmap::fromImage(*img_to_be_print));
+		free(img_to_be_print);
 
-        // 第二个是是否获得Gabor滤波
-        if (show_gabor_checkbox->isChecked())
-        {
-            gabor = printGabor();
-			img_to_be_print = Mat2QImage(gabor);
-            gabor_label->setPixmap(QPixmap::fromImage(*img_to_be_print));
-            free(img_to_be_print);
+		// 第二个是是否获得Gabor滤波
+		if (show_gabor_checkbox->isChecked())
+		{
+		gabor = printGabor();
+		img_to_be_print = Mat2QImage(gabor);
+		gabor_label->setPixmap(QPixmap::fromImage(*img_to_be_print));
+		free(img_to_be_print);
 
             // 第三个是是否获得AU
-            if (classify_checkbox->isChecked())
-            {
-				cv::imwrite("g.jpg", gabor);
-				gabor = cv::imread("g.jpg", CV_LOAD_IMAGE_GRAYSCALE);
-                ClassifyAndDisplay(gabor);
-            }
-        }
+			if (classify_checkbox->isChecked())
+			{
+				frame_detpar.mouthx = 74;
+				frame_detpar.mouthy = 125;
+				//cv::imwrite("g.jpg", gabor);
+				//gabor = cv::imread("g.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+				ClassifyAndDisplay(gabor);
+			}
+		}
     }
 }
 
@@ -241,6 +248,7 @@ void FacialExpressionX64::ProcessVideo()
     }
     while (can_process)
     {
+		cap >> frame;
         ProcessOneFrame();
     }
 }
@@ -260,6 +268,7 @@ void FacialExpressionX64::ProcessCamera()
     }
     while (can_process)
     {
+		cap >> frame;
         ProcessOneFrame();
     }
 }
@@ -322,4 +331,9 @@ void FacialExpressionX64::ChangeDirectory()
 void FacialExpressionX64::ChangeInterval(int interval)
 {
 
+}
+
+void ProcessThread::run()
+{
+	
 }

@@ -711,7 +711,6 @@ int OutputSlice(vector<Mat_<uchar>>& primeMatV, vector<Mat_<uchar>>& finalMatV, 
         {
             x_coord = b->coord.right_eye_x;
             y_coord = b->coord.right_eye_y;
-			qDebug("right_eye_x: %d, right_eye_y: %d", x_coord, y_coord);
         }
         else if (section == NOSE)
             getOffsetNose(&(*b), x_coord, y_coord, vecInfo);
@@ -865,10 +864,10 @@ void CK_Preprocessor::OutputAULabelSlice(vector<Information_Face>& vecInfo, vect
 //     vector<FACS_Face> b = CK_preprocessor.OutputFACSFromXML();
 //
 //     //CK_preprocessor.OutputAULabelSlice(a, b, EYE, 15, 15, 35, 10, 2);   // AU1、AU2
-//     CK_preprocessor.OutputAULabelSlice(a, b, EYE, 15, 15, 15, 15, 4); // AU4、AU5
-//     //CK_preprocessor.OutputAULabelSlice(a, b, EYE, 20, 20, 10, 50, 7); // AU6、AU7
+//     //CK_preprocessor.OutputAULabelSlice(a, b, EYE, 15, 15, 15, 15, 4); // AU4、AU5
+//     //CK_preprocessor.OutputAULabelSlice(a, b, EYE, 20, 20, 10, 50, 6); // AU6、AU7
 //     //CK_preprocessor.OutputAULabelSlice(a, b, EYE, 0, 30, 15, 15, 9);  // AU9
-//     //CK_preprocessor.OutputAULabelSlice(a, b, MOUTH, 30, 30, 20, 10, 20);    // AU10、AU12、AU15、AU16、AU18、AU20、AU22、AU23、AU24
+//     CK_preprocessor.OutputAULabelSlice(a, b, MOUTH, 30, 30, 20, 10, 10);    // AU10、AU12、AU15、AU16、AU18、AU20、AU22、AU23、AU24
 //
 //    return 0;
 //}

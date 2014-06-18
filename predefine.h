@@ -30,6 +30,6 @@ static const double Y_OFFSET = 50.;
 #define OUTPUT_XML
 //#define CALCULATE_GABOR
 //#define SAVE_FACE
-#define WITH_ID_EXPRESSION
+//#define WITH_ID_EXPRESSION
 
 #endif // PREDEFINE_H
