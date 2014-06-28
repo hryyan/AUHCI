@@ -8,6 +8,7 @@
 
 #include <QtGui/QMainWindow>
 #include <QFileDialog>
+#include <QThread>
 #include "ui_facialexpression_x64.h"
 #include "util.h"
 #include "source.h"
@@ -23,6 +24,23 @@ static int interval = 100;
 
 // 存储AU的队列
 static const int kAU[kBulbNum] = {1, 2, 4, 5, 6, 7, 9, 10, 12, 15, 16, 18, 20 ,22, 23, 24};
+
+class ProcessThread : public QThread
+{
+	Q_OBJECT
+public:
+	bool* Classify(Mat &);
+	bool show_face;
+	bool show_gabor;
+	bool classify;
+
+protected:
+	virtual void run();
+
+signals:
+	void Write(QImage*, QImage *face, QImage *gabor, bool *au_appear);
+
+};
 
 class FacialExpressionX64 : public QMainWindow
 {
@@ -75,6 +93,9 @@ public slots:
     // TODO：操作帧率
     void ChangeInterval(int);
 
+	// 读取处理线程得到的数据
+	void Read(QImage*, QImage*, QImage*, bool*);
+
 private:
     // 使用Qt Designer设计的ui
     Ui::FacialExpression_x64Class ui;
@@ -114,6 +135,8 @@ private:
     QLabel *label_vec[2*kBulbNum];
 
     bool can_process;
+
+	ProcessThread process_t;
 };
 
 #endif // FACIALEXPRESSION_H

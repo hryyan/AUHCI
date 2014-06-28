@@ -103,6 +103,7 @@ FacialExpressionX64::FacialExpressionX64(QWidget *parent, Qt::WFlags flags)
     connect(capture_gabor_button,    SIGNAL(released()),    this,    SLOT(CaptureGabor()));
     connect(change_directory_button, SIGNAL(released()),    this,    SLOT(ChangeDirectory()));
     connect(stop_button,             SIGNAL(released()),    this,    SLOT(StopAll()));
+	connect(&process_t,				 SIGNAL(Write(QImage*, QImage*, QImage*, bool*)), this,  SLOT(Read(QImage*, QImage*, QImage*, bool*)));
 
     // TODO: 可以控制帧率
     connect(frames_spinbox,    SIGNAL(valueChanged(int)),    this,    SLOT(ChangeInterval(int)));
@@ -140,17 +141,17 @@ bool FacialExpressionX64::InitSVM()
  */
 void FacialExpressionX64::ClassifyAndDisplay(Mat &gabor_img)
 {
-    CV_Assert(gabor_img.type() == 0);
-    CV_Assert(gabor_img.channels() == 1);
+	CV_Assert(gabor_img.type() == 0);
+	CV_Assert(gabor_img.channels() == 1);
 	bool *au_appear = (bool*)malloc(sizeof(bool)*kBulbNum);
-    getAU(au_appear, gabor_img);
-    for (int i = 0; i < kBulbNum; i++)
-    {
-        if (au_appear[i])
-            label_vec[i]->setPixmap(*on_pixmap);
-        else
-            label_vec[i]->setPixmap(*off_pixmap);
-    }
+	getAU(au_appear, gabor_img);
+	for (int i = 0; i < kBulbNum; i++)
+	{
+		if (au_appear[i])
+			label_vec[i]->setPixmap(*on_pixmap);
+		else
+			label_vec[i]->setPixmap(*off_pixmap);
+	}
 	free(au_appear);
 }
 
@@ -246,11 +247,12 @@ void FacialExpressionX64::ProcessVideo()
         qDebug("Video load fail!");
         return;
     }
-    while (can_process)
-    {
-		cap >> frame;
-        ProcessOneFrame();
-    }
+
+	// 调用处理线程，用来处理数据，主线程待命
+	process_t.show_face  = show_face_checkbox->isChecked();
+	process_t.show_gabor = show_gabor_checkbox->isChecked();
+	process_t.classify   = classify_checkbox->isChecked();
+	process_t.start();
 }
 
 void FacialExpressionX64::ProcessCamera()
@@ -266,11 +268,11 @@ void FacialExpressionX64::ProcessCamera()
         qDebug("Camera load fail!");
         return;
     }
-    while (can_process)
-    {
-		cap >> frame;
-        ProcessOneFrame();
-    }
+
+	process_t.show_face  = show_face_checkbox->isChecked();
+	process_t.show_gabor = show_gabor_checkbox->isChecked();
+	process_t.classify   = classify_checkbox->isChecked();
+	process_t.start();
 }
 
 void FacialExpressionX64::ProcessSequence()
@@ -306,7 +308,7 @@ void FacialExpressionX64::ProcessSequence()
 
 void FacialExpressionX64::StopAll()
 {
-    can_process = false;
+    process_t.exit();
 }
 
 void FacialExpressionX64::CaptureFace()
@@ -333,7 +335,78 @@ void FacialExpressionX64::ChangeInterval(int interval)
 
 }
 
+void FacialExpressionX64::Read(QImage *origin, QImage *face, QImage *gabor, bool* au_appear)
+{
+	if (origin)
+		input_label->setPixmap(QPixmap::fromImage(*origin));
+	if (face != NULL && show_face_checkbox->isChecked())
+		face_label->setPixmap(QPixmap::fromImage(*face));
+	if (gabor != NULL && show_gabor_checkbox->isChecked())
+		gabor_label->setPixmap(QPixmap::fromImage(*gabor));
+	if (classify_checkbox->isChecked())
+	{
+		for (int i = 0; i < kBulbNum; i++)
+		{
+		    if (au_appear[i])
+		        label_vec[i]->setPixmap(*on_pixmap);
+		    else
+		        label_vec[i]->setPixmap(*off_pixmap);
+		}
+	}
+}
+
 void ProcessThread::run()
 {
-	
+	Mat gabor;
+	QImage *orign_img = NULL;
+	QImage *face_img  = NULL;
+	QImage *gabor_img = NULL;
+	bool *au_appear;
+	while (true)
+	{
+		cap >> frame;
+		orign_img = Mat2QImage(frame);
+		// 检测三个checkBox
+		// 第一个是是否检测脸部
+		if (show_face && frame.rows != 0 && frame.cols != 0)
+		{
+			PrintFaceToFrame();
+			if (frame.rows == 0 && frame.cols == 0)
+				return;
+			DetectEyes();
+			//DetectMouth();
+			face_img = Mat2QImage(frame);
+
+			// 第二个是是否获得Gabor滤波
+			if (show_gabor)
+			{
+				gabor = printGabor();
+				gabor_img = Mat2QImage(gabor);
+
+				// 第三个是是否获得AU
+				if (classify)
+				{
+					frame_detpar.mouthx = 74;
+					frame_detpar.mouthy = 125;
+					//cv::imwrite("g.jpg", gabor);
+					//gabor = cv::imread("g.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+					au_appear = Classify(gabor);
+				}
+			}
+		}
+		emit Write(orign_img, face_img, gabor_img, au_appear);
+	}
+}
+
+/**
+ * 根据Gabor图像分类表情
+ * @param gabor_img 分类的图像
+ */
+bool* ProcessThread::Classify(Mat &gabor_img)
+{
+    CV_Assert(gabor_img.type() == 0);
+    CV_Assert(gabor_img.channels() == 1);
+	bool *au_appear = (bool*)malloc(sizeof(bool)*kBulbNum);
+    getAU(au_appear, gabor_img);
+	return au_appear;
 }

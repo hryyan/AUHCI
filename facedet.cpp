@@ -235,7 +235,12 @@ void PrintFaceToFrame()
     }
 
     // 把图像缩放成一个固定尺寸，并且修改它的大小等参数。
-    cv::resize(dst, dst, Size(RESIZE_WIDTH, RESIZE_HEIGHT));
+	if (dst.rows == 0 && dst.cols == 0)
+	{
+		frame = Mat(0, 0, CV_8UC1);
+		return;
+	}
+	cv::resize(dst, dst, Size(RESIZE_WIDTH, RESIZE_HEIGHT));
     frame_detpar.width  = RESIZE_WIDTH;
     frame_detpar.height = RESIZE_HEIGHT;
     frame_detpar.x      = frame_detpar.width / 2;
