@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*- 
 
+# 计算当前目录的代码量
 import os
 
 l = ['h', 'c', 'cpp', 'hpp']

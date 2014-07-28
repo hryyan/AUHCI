@@ -5,21 +5,30 @@
 #include "classification.h"
 #include <algorithm>
 
+// 当前图片以及对应的人脸参数
 extern Mat frame;
 extern DetPar frame_detpar;
 
+// AU数量及具体信息，以及AU模型的信息
 static const int kAuNum = 16;
 static const int kAuIndex[kAuNum] = { 1,  2,  4,  5,  6,  7,  9, 10, 12, 15, 
 							  16, 18, 20, 22, 23, 24};
 static const char kDirPath[SLEN] = ".\\AU_MODEL\\";
+
+// 是否被初始化
 static bool is_inited = false;
 
+// SVM模板及最大最小特征值
 svm_model* au_models[kAuNum];
 ScaleFactor* au_scales[kAuNum];
 
+// scale的范围
 double lower = -1.0;
 double upper = 1.0;
 
+/**
+ * 加载所有SVM模板
+ */
 void LoadAllModels()
 {
     char model_name[40], model_path[SLEN];
@@ -36,6 +45,11 @@ void LoadAllModels()
     }
 }
 
+/**
+ * 读取行
+ * @param  input in:   文件
+ * @return       out:  返回该行内容
+ */
 char* readline(FILE *input)
 {
     int len;
@@ -56,6 +70,11 @@ char* readline(FILE *input)
     return line;
 }
 
+/**
+ * 加载比例文件
+ * @param  path in:   比例文件地址
+ * @return      out:  比例信息
+ */
 ScaleFactor* LoadScale(char *path)
 {
     int max_index = 0;
@@ -101,6 +120,9 @@ ScaleFactor* LoadScale(char *path)
     return scale_factor_ptr;
 }
 
+/**
+ * 加载所有比例
+ */
 void LoadAllScales()
 {
     char scale_name[40], scale_path[SLEN];
@@ -117,6 +139,13 @@ void LoadAllScales()
     }
 }
 
+/**
+ * 根据比例获得该值对应的输出
+ * @param  idx         in:   索引
+ * @param  value       in:   入值
+ * @param  scale_index in:   比例的索引
+ * @return             out:  按比例缩放后的输出
+ */
 double Output(int idx, uchar value, int scale_index)
 {
 	double v = value;
@@ -137,6 +166,12 @@ double Output(int idx, uchar value, int scale_index)
     return v;
 }
 
+/**
+ * 把图像矩阵按比例缩放之后得到的SVM节点
+ * @param  source      in:   图像矩阵
+ * @param  scale_index in:   比例索引
+ * @return             out:  返回的SVM节点
+ */
 svm_node* Scale(Mat &source, int scale_index)
 {
     int idx;
@@ -163,6 +198,9 @@ svm_node* Scale(Mat &source, int scale_index)
 	return nodes;
 }
 
+/**
+ * 分类初始化
+ */
 void ClassifyInit()
 {
 	LoadAllModels();
@@ -170,6 +208,12 @@ void ClassifyInit()
 	is_inited = true;
 }
 
+/**
+ * 预测辅助函数
+ * @param  x     in:   图像矩阵
+ * @param  index in:   比例矩阵
+ * @return       out:  该AU是否出现
+ */
 int PredictHelper(Mat& x, int index)
 {
 	svm_node* nodes = Scale(x, index);
@@ -178,6 +222,11 @@ int PredictHelper(Mat& x, int index)
 	return on;
 }
 
+/**
+ * 预测函数
+ * @param x      in:   图像矩阵
+ * @param output out:  所有AU的信息
+ */
 void predict(Mat *x, int *output)
 {
     if (!is_inited)
@@ -256,6 +305,18 @@ void predict(Mat *x, int *output)
 	}
 }
 
+/**
+ * 根据图像中的人脸信息选择兴趣区域
+ * @param src       in:   源图像矩阵
+ * @param left      in:   左边界
+ * @param right     in:   右边界
+ * @param top       in:   上边界
+ * @param bottom    in:   下边界
+ * @param det       in:   人脸信息
+ * @param section   in:   枚举值，可以为瞳孔、鼻尖、嘴尖
+ * @param left_mat  out:  输出脸左侧的兴趣区域
+ * @param right_mat out:  输出脸右侧的兴趣区域
+ */
 void getROI(Mat &src, int left, int right, int top, int bottom, DetPar det, FACESECTION section, Mat& left_mat, Mat& right_mat)
 {
 	qDebug("Width: %d, Height: %d", src.cols, src.rows);
@@ -318,6 +379,11 @@ void getROI(Mat &src, int left, int right, int top, int bottom, DetPar det, FACE
         right_mat = Mat();
 }
 
+/**
+ * 给定图片，获得该图片的AU信息
+ * @param au        in/out:  AU信息
+ * @param gabor_img in:      图像矩阵
+ */
 void getAU(bool* au_bool, Mat& gabor_img)
 {
 	Mat m[10];
