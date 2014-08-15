@@ -20,7 +20,11 @@ OTHER_FILES += \
     convolutionFFT2D.cuh \
     README.md \
     CodeAmount.py \
-    util.py
+    util.py \
+    Accelerator/convolutionFFT2D.cuh \
+    Util/README.md \
+    Util/CodeAmount.py \
+    Util/util.py
 
 HEADERS += \
     classification.h \
@@ -37,7 +41,21 @@ HEADERS += \
     source.h \
     svm.h \
     tinyxml2.h \
-    util.h
+    util.h \
+    Accelerator/conv2d.h \
+    Accelerator/convolutionFFT2D_common.h \
+    Accelerator/svm.h \
+    Classification/classification.h \
+    Detection/eyedet.h \
+    Detection/facedet.h \
+    Detection/otherdet.h \
+    Feature/haarclassifier.h \
+    Source/generate.h \
+    Source/source.h \
+    Util/predefine.h \
+    Util/tinyxml2.h \
+    Util/util.h \
+    Feature/gabor.h
 
 SOURCES += \
     classification.cpp \
@@ -58,4 +76,21 @@ SOURCES += \
     convolutionFFT2D.cu \
     svm-predict.c \
     svm-scale.c \
-    svm-train.c
+    svm-train.c \
+    Accelerator/conv2d.cpp \
+    Accelerator/convolutionFFT2D_gold.cpp \
+    Accelerator/svm.cpp \
+    Accelerator/convolutionFFT2D.cu \
+    Accelerator/svm-predict.c \
+    Accelerator/svm-scale.c \
+    Accelerator/svm-train.c \
+    Classification/classification.cpp \
+    Detection/eyedet.cpp \
+    Detection/facedet.cpp \
+    Detection/otherdet.cpp \
+    Feature/gabor.cpp \
+    Feature/haarclassifier.cpp \
+    Source/generate.cpp \
+    Source/source.cpp \
+    Util/tinyxml2.cpp \
+    Util/util.cpp

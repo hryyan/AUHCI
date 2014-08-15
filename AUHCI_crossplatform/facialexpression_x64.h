@@ -10,11 +10,13 @@
 #include <QFileDialog>
 #include <QThread>
 #include "ui_facialexpression_x64.h"
-#include "util.h"
-#include "source.h"
-#include "facedet.h"
-#include "gabor.h"
-#include "classification.h"
+#include "Util/util.h"
+#include "Util/source.h"
+#include "Detection/facedet.h"
+#include "Detection/eyedet.h"
+#include "Detection/otherdet.h"
+#include "Feature/gabor.h"
+#include "Classification/classification.h"
 
 // 用于显示AU状态的小灯泡的数量
 static const int kBulbNum = 16;
