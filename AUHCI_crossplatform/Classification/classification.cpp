@@ -12,7 +12,7 @@ extern DetPar frame_detpar;
 static const int kAuNum = 16;
 static const int kAuIndex[kAuNum] = { 1,  2,  4,  5,  6,  7,  9, 10, 12, 15, 
 							  16, 18, 20, 22, 23, 24};
-static const char kDirPath[SLEN] = ".\\AU_MODEL\\";
+static const char kDirPath[SLEN] = "../AUHCI_crossplatform/AU_MODEL/";
 
 // 是否被初始化
 static bool is_inited = false;

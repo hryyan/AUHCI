@@ -72,27 +72,25 @@ FacialExpressionX64::FacialExpressionX64(QWidget *parent, Qt::WFlags flags)
     // 设置截图保存的路径
     screen_shot_directory = "./";
 
-    /*
     // 初始化CV环境以及SVM环境
     if (InitCV())
     {
-        qDebug("CV environment inited success!");        
+        qDebug("CV environment inited success!");
     }
     else
     {
         qDebug("CV environment inited fail!");
         this->close();
     }
-	if (InitSVM())
-	{
-		qDebug("SVM environment inited success!");
-	}
-	else
-	{
-		qDebug("SVM environment inited fail!");
-		this->close();
-	}
-    */
+    if (InitSVM())
+    {
+        qDebug("SVM environment inited success!");
+    }
+    else
+    {
+        qDebug("SVM environment inited fail!");
+        this->close();
+    }
 
     can_process = true;
 

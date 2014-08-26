@@ -16,7 +16,6 @@
  * can be efficiently implemented
  * using FFT transformations.
  */
-#ifdef WIN32
 #include "conv2d.h"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -632,5 +631,3 @@ bool test2(void)
 
     return bRetVal;
 }
-
-#endif

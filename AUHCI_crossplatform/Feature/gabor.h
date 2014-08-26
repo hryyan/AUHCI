@@ -2,10 +2,7 @@
 #define GABOR_H
 
 #include "Util/util.h"
-
-#ifdef WIN32
-#include "conv2d.h"
-#endif
+#include "Accelerator/conv2d.h"
 
 /**
  * 进行Gabor滤波
@@ -95,7 +92,6 @@ public:
     vector<Mat> gaborRealKernels;
     vector<Mat> gaborImagKernels;
 
-#ifdef WIN32
     // 实部核和虚部核的频谱
     vector<fComplex*> d_VecRealKernelSpectrum, d_VecImagKernelSpectrum;
     fComplex* d_KernelSpectrum, *d_DataSpectrum, *d_StoreSpectrum;
@@ -111,7 +107,6 @@ public:
     int dataH, dataW;
     // fft变换的数据
     int fftW, fftH;
-#endif
 private:
     // 禁止复制ctr和assign
     DISALLOW_COPY_AND_ASSIGN(CUDA_Gabor);

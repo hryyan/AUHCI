@@ -9,7 +9,7 @@ static const double SCALE_FACTOR    = 1.1;
 static const int    MIN_NEIGHBORS   = 3;
 static const int    DETECTOR_FLAGS  = 0;
 
-static const char   haar_classifier_directory[SLEN] = "C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV_64bit\\FacialExpression_x64\\CacadeClassifier";
+static const char   haar_classifier_directory[SLEN] = "../AUHCI_crossplatform/CacadeClassifier";
 
 /**
  * 打开haar分类器

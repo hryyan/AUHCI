@@ -315,7 +315,6 @@ CUDA_Gabor::CUDA_Gabor()
 
 CUDA_Gabor::~CUDA_Gabor()
 {
-#ifdef WIN32
 	if (isInited)
 	{
 		checkCudaErrors(cudaFree(d_DataSpectrum));
@@ -336,12 +335,10 @@ CUDA_Gabor::~CUDA_Gabor()
 		free(h_Data);
 		free(h_Kernel);
 	}
-#endif
 }
 
 void CUDA_Gabor::Init(Size ksize, double sigma, double gamma, int ktype)
 {
-#ifdef WIN32
     gaborRealKernels.clear();
     gaborImagKernels.clear();
     d_VecRealKernelSpectrum.clear();
@@ -398,12 +395,10 @@ void CUDA_Gabor::Init(Size ksize, double sigma, double gamma, int ktype)
         }
     }
     isInited = true;
-#endif
 }
 
 void CUDA_Gabor::Prepare_GPU_PadderKernel(int index, bool isReal)
 {
-#ifdef WIN32
     Mat kernel;
     if (isReal)
         kernel = gaborRealKernels[index];
@@ -441,12 +436,10 @@ void CUDA_Gabor::Prepare_GPU_PadderKernel(int index, bool isReal)
         d_VecRealKernelSpectrum.push_back(d_KernelSpectrum);
     else
         d_VecImagKernelSpectrum.push_back(d_KernelSpectrum);
-#endif
 }
 
 void CUDA_Gabor::Prepare_GPU_PadderData(Mat &src)
 {
-#ifdef WIN32
     for (int i = 0; i < dataH; i++)
     {
         float *Mi = src.ptr<float>(i);
@@ -473,12 +466,10 @@ void CUDA_Gabor::Prepare_GPU_PadderData(Mat &src)
     checkCudaErrors(cufftExecR2C(fftPlanFwd, (cufftReal *)d_PaddedData, (cufftComplex *)d_DataSpectrum));
     checkCudaErrors(cudaDeviceSynchronize());
 	checkCudaErrors(cudaMemcpy(d_StoreSpectrum, d_DataSpectrum, fftH * (fftW / 2 + 1) * sizeof(fComplex), cudaMemcpyDeviceToDevice));
-#endif
 }
 
 Mat CUDA_Gabor::getFilter(Mat &src, int index, bool isReal)
 {
-#ifdef WIN32
     if (!src.empty())
         Prepare_GPU_PadderData(src);
     else
@@ -508,7 +499,6 @@ Mat CUDA_Gabor::getFilter(Mat &src, int index, bool isReal)
     qDebug("%f", gpuTime);
 
     return result;
-#endif
 }
 
 // 获得实部与虚部的L2范数

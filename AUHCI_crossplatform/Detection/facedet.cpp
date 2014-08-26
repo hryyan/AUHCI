@@ -15,7 +15,7 @@ extern DetPar frame_detpar;
 static cv::CascadeClassifier facedet_g;
 
 // GPU级联分类器
-//static cv::gpu::CascadeClassifier_GPU facedet_gpu_g;
+static cv::gpu::CascadeClassifier_GPU facedet_gpu_g;
 
 // 图像边缘忽略的比例
 static double BORDER_FRAC_FACE = 0.1;
@@ -158,7 +158,7 @@ static void DiscardMissizedFaces(vec_DetPar &detpars)
 vector<DetPar> DetectFaces_(const Image &img, bool multiface, int minwidth)
 {
     CV_Assert(!facedet_g.empty());
-//	CV_Assert(!facedet_gpu_g.empty());
+    CV_Assert(!facedet_gpu_g.empty());
 
     vector<DetPar> detpars_;
 
@@ -185,8 +185,8 @@ void InitFaceDet()
     if(facedet_g.empty())
         OpenDetector(&facedet_g, "haarcascade_frontalface_alt2.xml");
 
-    //if (facedet_gpu_g.empty())
-    //    OpenDetector(&facedet_gpu_g, "haarcascade_frontalface_alt2.xml");
+    if (facedet_gpu_g.empty())
+        OpenDetector(&facedet_gpu_g, "haarcascade_frontalface_alt2.xml");
 }
 
 /**
@@ -196,7 +196,7 @@ void InitFaceDet()
 void PrintFaceToFrame()
 {
     CV_Assert(!facedet_g.empty());
-    //CV_Assert(!facedet_gpu_g.empty());
+    CV_Assert(!facedet_gpu_g.empty());
 
 	qDebug("Starting printFace...");
 	QTime time1 = QTime::currentTime();

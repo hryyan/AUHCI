@@ -9,10 +9,6 @@
  *
  */
 
-
-#ifndef WIN32
-#define WIN32
-#endif
 #include <assert.h>
 #include "convolutionFFT2D_common.h"
 
