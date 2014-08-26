@@ -396,11 +396,11 @@ void getAU(bool* au_bool, Mat& gabor_img)
 	predict(m, output);
 	
 	for (int i = 0; i < kAuNum; i++)
-	{
-		if (output[i*2] || output[i*2+1])
-			au_bool[i] = true;
-		else
-			au_bool[i] = false;
-	}
-	free(output);
+    {
+        if (output[i*2] || output[i*2+1])
+            au_bool[i] = true;
+        else
+            au_bool[i] = false;
+    }
+    free(output);
 }
