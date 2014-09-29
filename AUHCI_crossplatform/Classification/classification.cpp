@@ -404,3 +404,139 @@ void getAU(bool* au_bool, Mat& gabor_img)
     }
     free(output);
 }
+
+/**
+ * Another verion for getting au from radius points
+ * @param au        in/out: AU Information
+ * @param gabor_img in:     img matrix
+ */
+void getAU2(bool* au_bool, Mat& gabor_img, int radius)
+{
+    Mat m[10];
+    int *output = (int*)malloc(kAuNum*2*sizeof(int));
+    typedef std::vector<double> res;
+    res au_percent[kAuNum];
+
+    // gaussian_kernel
+    Mat gaussian_kernel = cv::getGaussianKernel(2*radius+1, 0);
+    for (int i = 0; i < 2*radius+1; i++)
+    {
+        qDebug("%f", gaussian_kernel.at<double>(0, i));
+    }
+
+    DetPar tmp = frame_detpar;
+    for (int x_offset = 0-radius; x_offset <= radius; x_offset++)
+    {
+        for (int y_offset = abs(x_offset)-radius; y_offset <= radius-abs(x_offset); y_offset++)
+        {
+            frame_detpar.lex = tmp.lex + x_offset;  frame_detpar.ley = tmp.ley + y_offset;
+            frame_detpar.rex = tmp.rex + x_offset;  frame_detpar.rey = tmp.rey + y_offset;
+            frame_detpar.mouthx = 75 + x_offset  ;  frame_detpar.mouthy = tmp.nosey + 32 + y_offset;
+
+            getROI(gabor_img, 15, 15, 35, 10, frame_detpar, EYE,   m[0], m[1]);
+            getROI(gabor_img, 15, 15, 15, 15, frame_detpar, EYE,   m[2], m[3]);
+            getROI(gabor_img, 20, 20, 10, 50, frame_detpar, EYE,   m[4], m[5]);
+            getROI(gabor_img,  0, 30, 15, 15, frame_detpar, EYE,   m[6], m[7]);
+            getROI(gabor_img, 30, 30, 20, 10, frame_detpar, MOUTH, m[8], m[9]);
+
+            predict(m, output);
+            for (int i = 0; i < kAuNum; i++)
+            {
+                if (output[i*2] || output[i*2+1])
+                {
+                    // gaussian_kernel
+                    au_percent[i].push_back(\
+                                gaussian_kernel.at<double>(0, radius-abs(x_offset)) * \
+                                gaussian_kernel.at<double>(0, radius-abs(y_offset)));
+                    // normal_kernel
+//                    au_percent[i].push_back(1);
+//                    qDebug("%f", au_percent[i].back());
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < kAuNum; i++)
+    {
+        double sum = 0;
+        for (int j = 0; j < au_percent[i].size(); j++)
+            sum += au_percent[i].at(j);
+
+        // normal_kernel
+//        int k[7] = {0, 1, 4, 9, 16, 25, 36};
+//        int s = k[radius]*2 + (radius+1) * 2 - 1;
+//        sum /= s;
+        if (sum > 0.6)
+        {
+            qDebug("AU %d on!", kAuIndex[i]);
+            au_bool[i] = true;
+        }
+        else
+            au_bool[i] = false;
+    }
+}
+
+/**
+ * Another verion for getting au from radius points
+ * @param au        in/out: AU Information
+ * @param gabor_img in:     img matrix
+ */
+void getAU3(bool* au_bool, Mat& gabor_img, int radius)
+{
+    Mat m[10];
+    int *output = (int*)malloc(kAuNum*2*sizeof(int));
+    typedef std::vector<double> res;
+    res au_percent[kAuNum];
+
+    Mat gaussian_kernel = cv::getGaussianKernel(2*radius+1, 0);
+    for (int i = 0; i < 2*radius+1; i++)
+        qDebug("%f", gaussian_kernel.at<double>(0, i));
+
+
+    for (int y_offset = 0-radius; y_offset <= radius; y_offset++)
+    {
+        frame_detpar.mouthx = 75;       frame_detpar.mouthy = frame_detpar.nosey+32;
+        getROI(gabor_img, 30, 30, 20, 10, frame_detpar, MOUTH, m[8], m[9]);
+
+        predict(m, output);
+        for (int i = 7; i < kAuNum; i++)
+        {
+            if (output[i*2] || output[i*2+1])
+            {
+                au_percent[i].push_back(1);
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

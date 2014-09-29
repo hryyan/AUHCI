@@ -45,7 +45,8 @@ HEADERS += \
     Util/predefine.h \
     Util/tinyxml2.h \
     Util/util.h \
-    Util/source.h
+    Util/source.h \
+    Test/mouth_based_au_test.h
 
 SOURCES += \
     facialexpression_x64.cpp \
@@ -67,7 +68,8 @@ SOURCES += \
     Source/generate.cpp \
     Util/tinyxml2.cpp \
     Util/util.cpp \
-    Util/source.cpp
+    Util/source.cpp \
+    Test/mouth_based_au_test.cpp
 
 CUDA_HEADERS += \
     Acceleraotr/convolutionFFT2D.cuh

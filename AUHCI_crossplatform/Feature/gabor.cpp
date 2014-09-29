@@ -315,26 +315,26 @@ CUDA_Gabor::CUDA_Gabor()
 
 CUDA_Gabor::~CUDA_Gabor()
 {
-	if (isInited)
-	{
-		checkCudaErrors(cudaFree(d_DataSpectrum));
-        checkCudaErrors(cudaFree(d_StoreSpectrum));
-		checkCudaErrors(cudaFree(d_PaddedData));
-		checkCudaErrors(cudaFree(d_PaddedKernel));
-		checkCudaErrors(cudaFree(d_Data));
-		checkCudaErrors(cudaFree(d_Kernel));
-        checkCudaErrors(cudaFree(d_Result));
+//	if (isInited)
+//	{
+//		checkCudaErrors(cudaFree(d_DataSpectrum));
+//        checkCudaErrors(cudaFree(d_StoreSpectrum));
+//		checkCudaErrors(cudaFree(d_PaddedData));
+//		checkCudaErrors(cudaFree(d_PaddedKernel));
+//		checkCudaErrors(cudaFree(d_Data));
+//		checkCudaErrors(cudaFree(d_Kernel));
+//        checkCudaErrors(cudaFree(d_Result));
 
-		for (int i = 0; i < 40; i++)
-		{
-			checkCudaErrors(cudaFree(d_VecRealKernelSpectrum[i]));
-			checkCudaErrors(cudaFree(d_VecImagKernelSpectrum[i]));
-		}
+//		for (int i = 0; i < 40; i++)
+//		{
+//			checkCudaErrors(cudaFree(d_VecRealKernelSpectrum[i]));
+//			checkCudaErrors(cudaFree(d_VecImagKernelSpectrum[i]));
+//		}
 
-		free(h_ResultGPU);
-		free(h_Data);
-		free(h_Kernel);
-	}
+//		free(h_ResultGPU);
+//		free(h_Data);
+//		free(h_Kernel);
+//	}
 }
 
 void CUDA_Gabor::Init(Size ksize, double sigma, double gamma, int ktype)

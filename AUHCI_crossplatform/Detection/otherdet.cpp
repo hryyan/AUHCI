@@ -55,8 +55,9 @@ static void SelectMouths(int &imouth_best, vec_Rect *mouths, const Rect &mouths_
  */
 void DetectMouth()
 {
-    OpenDetector(&mouth_det_g, "Mouth.xml");
-    //OpenDetector(&mouth_det_gpu_g, "Mouth.xml");
+    if (mouth_det_g.empty())
+        OpenDetector(&mouth_det_g, "Mouth.xml");
+        //OpenDetector(&mouth_det_gpu_g, "Mouth.xml");
 
     // 把人脸的区域勾出来
     Rect facerect(cvRound(frame_detpar.x - frame_detpar.width/2),
@@ -109,8 +110,9 @@ void DetectMouth()
  */
 void DetectNose()
 {
-    OpenDetector(&nose_det_g, "Nose.xml");
-    //OpenDetector(&nose_det_gpu_g, "Nose.xml");
+    if (nose_det_g.empty())
+        OpenDetector(&nose_det_g, "Nose.xml");
+        //OpenDetector(&nose_det_gpu_g, "Nose.xml");
     // 把人脸的区域勾出来
     Rect facerect(cvRound(frame_detpar.x - frame_detpar.width/2),
                   cvRound(frame_detpar.y - frame_detpar.height/2),
@@ -148,12 +150,12 @@ void DetectNose()
 		#endif
         // 把嘴部框的坐标映射到人脸框
         if (inose_best >= 0)
-		{
+        {
             RectToImgFrame(frame_detpar.nosex, frame_detpar.nosey, noses[inose_best]);
-			#ifdef ALLOWPOINT
-			circle(frame, Point(noses[0].x+noses[0].width/2, noses[0].y+noses[0].height/2), 1, Scalar(255, 255, 255));
-			#endif
-		}
+            #ifdef ALLOWPOINT
+            circle(frame, Point(noses[0].x+noses[0].width/2, noses[0].y+noses[0].height/2), 1, Scalar(255, 255, 255));
+            #endif
+        }
 		
     }
 }

@@ -57,4 +57,11 @@ void getROI(Mat &src, int left, int right, int top, int bottom, DetPar det, FACE
  */
 void getAU(bool* au, Mat& gabor_img);
 
+/**
+ * Another verion for getting au from radius points
+ * @param au        in/out: AU Information
+ * @param gabor_img in:     img matrix
+ */
+void getAU2(bool* au_bool, Mat& gabor_img, int radius);
+
 #endif

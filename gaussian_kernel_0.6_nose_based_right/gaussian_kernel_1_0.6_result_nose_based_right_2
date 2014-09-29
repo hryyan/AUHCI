@@ -1,0 +1,37 @@
+gaussian_kernel_0
+mouth_correct:  0.79035639413
+eye_correct:    0.891696750903
+mouth_miss:     0.0146750524109
+eye_miss:       0.0
+mouth_wrong:    0.194968553459
+eye_wrong:      0.108303249097
+477
+831
+gaussian_kernel_1
+mouth_correct:  0.816017316017
+eye_correct:    0.90586797066
+mouth_miss:     0.0151515151515
+eye_miss:       0.0
+mouth_wrong:    0.168831168831
+eye_wrong:      0.0941320293399
+462
+818
+gaussian_kernel_2e
+mouth_correct:  0.825607064018
+eye_correct:    0.904294478528
+mouth_miss:     0.0220750551876
+eye_miss:       0.00490797546012
+mouth_wrong:    0.152317880795
+eye_wrong:      0.0907975460123
+453
+815
+gaussian_kernel_3
+mouth_correct:  0.831081081081
+eye_correct:    0.906172839506
+mouth_miss:     0.0337837837838
+eye_miss:       0.00864197530864
+mouth_wrong:    0.135135135135
+eye_wrong:      0.0851851851852
+444
+810
+[Finished in 0.2s]

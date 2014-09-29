@@ -195,8 +195,7 @@ void InitFaceDet()
  */
 void PrintFaceToFrame()
 {
-    CV_Assert(!facedet_g.empty());
-    CV_Assert(!facedet_gpu_g.empty());
+    InitFaceDet();
 
 	qDebug("Starting printFace...");
 	QTime time1 = QTime::currentTime();

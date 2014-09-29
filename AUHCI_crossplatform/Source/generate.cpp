@@ -148,11 +148,9 @@ void CK_Preprocessor::Output40Gabor()
 
                 // 识别人眼，嘴和鼻尖
                 DetectEyes();
+                DetectNose();
                 if (index == 1)
-                {
                     DetectMouth();
-                    DetectNose();
-                }
 
                 #ifdef OUTPUT_XML 
                 printer.OpenElement("Left_Eye_Position");
@@ -577,22 +575,24 @@ void getOffsetMouth(Information_Face *b, int& x, int& y, vector<Information_Face
     }
     else
     {
-        if (b->coord.right_eye_x != 99999 &&\
-            b->coord.right_eye_y != 99999 &&\
-            b->coord.left_eye_x  != 99999 &&\
-            b->coord.left_eye_y  != 99999)
-        {
-            Information_Face* info = getResponseFrameOne(b, vecInfo);
-            if (info)
-            {
-                int offset_x = (b->coord.right_eye_x - info->coord.right_eye_x\
-                               + b->coord.left_eye_x - info->coord.left_eye_x) / 2;
-                int offset_y = (b->coord.right_eye_y - info->coord.right_eye_y\
-                               + b->coord.left_eye_y - info->coord.left_eye_y) / 2;
-                x = info->coord.mouth_x + offset_x;
-                y = info->coord.mouth_y + offset_y;
-            }
-        }
+//        if (b->coord.right_eye_x != 99999 &&\
+//            b->coord.right_eye_y != 99999 &&\
+//            b->coord.left_eye_x  != 99999 &&\
+//            b->coord.left_eye_y  != 99999)
+//        {
+//            Information_Face* info = getResponseFrameOne(b, vecInfo);
+//            if (info)
+//            {
+//                int offset_x = (b->coord.right_eye_x - info->coord.right_eye_x\
+//                               + b->coord.left_eye_x - info->coord.left_eye_x) / 2;
+//                int offset_y = (b->coord.right_eye_y - info->coord.right_eye_y\
+//                               + b->coord.left_eye_y - info->coord.left_eye_y) / 2;
+//                x = info->coord.mouth_x + offset_x;
+//                y = info->coord.mouth_y + offset_y;
+//            }
+//        }
+        x = 75;
+        y = b->coord.nose_y + 32;
     }
 }
 
@@ -683,10 +683,10 @@ int OutputSlice(vector<Mat_<uchar> >& primeMatV, vector<Mat_<uchar> >& finalMatV
         else if (section == MOUTH)
             getOffsetMouth(&(*b), x_coord, y_coord, vecInfo);
 
-        sprintf(srcpath, "C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV_64bit\\FacialExpression_x64\\AfterPreprocess_Pre\\%s\\%s\\%sface_l2.jpg", \
+        sprintf(srcpath, "/home/vincent/Documents/AUHCI/AUHCI_crossplatform/AfterPreprocess_Pre/%s/%s/%sface_l2.jpg", \
             b->id.c_str(), b->expression.c_str(), b->filename.c_str());
         // Slice的位置
-        sprintf(dstpath, "Slices\\%s_left.jpg", b->filename.c_str());
+        sprintf(dstpath, "/home/vincent/Documents/AUHCI/AUHCI_crossplatform/Slices/%s_left.jpg", b->filename.c_str());
         img = cv::imread(srcpath, CV_LOAD_IMAGE_GRAYSCALE);
         if (section == EYE)
             OutputSliceHelper(primeMatV, finalMatV, finalFACS, *b, vecFACS, img, dstpath, x_coord, y_coord, left, right, top, bottom, false);
@@ -710,10 +710,10 @@ int OutputSlice(vector<Mat_<uchar> >& primeMatV, vector<Mat_<uchar> >& finalMatV
         else if (section == MOUTH)
             getOffsetMouth(&(*b), x_coord, y_coord, vecInfo);
 
-        sprintf(srcpath, "C:\\Users\\vincent\\Documents\\Visual Studio 2010\\Projects\\CV_64bit\\FacialExpression_x64\\AfterPreprocess_Pre\\%s\\%s\\%sface_l2.jpg", \
+        sprintf(srcpath, "/home/vincent/Documents/AUHCI/AUHCI_crossplatform/AfterPreprocess_Pre/%s/%s/%sface_l2.jpg", \
             b->id.c_str(), b->expression.c_str(), b->filename.c_str());
         // Slice的位置
-        sprintf(dstpath, "Slices\\%s_right.jpg", b->filename.c_str());
+        sprintf(dstpath, "/home/vincent/Documents/AUHCI/AUHCI_crossplatform/Slices/%s_left.jpg", b->filename.c_str());
         img = cv::imread(srcpath, CV_LOAD_IMAGE_GRAYSCALE);
         if (section == EYE)
             OutputSliceHelper(primeMatV, finalMatV, finalFACS, *b, vecFACS, img, dstpath, x_coord, y_coord, right, left, top, bottom, true);
@@ -748,7 +748,7 @@ void CK_Preprocessor::OutputAULabelSlice(vector<Information_Face>& vecInfo, vect
     int positive_sample = 0;
 
     char filename[20];
-    sprintf(filename, "AU_RESOURCE/AU_%d.txt", au);
+    sprintf(filename, "/home/vincent/Documents/AUHCI/AUHCI_crossplatform/AU_RESOURCE/AU_%d.txt", au);
 
     // 对指定区域进行Slice
     int sp = OutputSlice(primeMatV, finalMatV, finalFACS, vecInfo, vecFACS, left, right, top, bottom, section);
@@ -848,8 +848,8 @@ void CK_Preprocessor::OutputAULabelSlice(vector<Information_Face>& vecInfo, vect
 // 有时候用于生成训练数据
 void generator_samples()
 {
-    CK_Preprocessor CK_preprocessor(QString("D:\\ck\\cohn-kanade\\cohn-kanade"));
-    //CK_preprocessor.Output40Gabor();
+    CK_Preprocessor CK_preprocessor(QString("/home/vincent/Documents/AUHCI/ck/cohn-kanade/cohn-kanade"));
+//    CK_preprocessor.Output40Gabor();
     //CK_preprocessor.Merge40Gabor();
     //CK_preprocessor.OutputGabor();
 
@@ -860,5 +860,5 @@ void generator_samples()
      //CK_preprocessor.OutputAULabelSlice(a, b, EYE, 15, 15, 15, 15, 4); // AU4、AU5
      //CK_preprocessor.OutputAULabelSlice(a, b, EYE, 20, 20, 10, 50, 6); // AU6、AU7
      //CK_preprocessor.OutputAULabelSlice(a, b, EYE, 0, 30, 15, 15, 9);  // AU9
-     CK_preprocessor.OutputAULabelSlice(a, b, MOUTH, 30, 30, 20, 10, 10);    // AU10、AU12、AU15、AU16、AU18、AU20、AU22、AU23、AU24
+     CK_preprocessor.OutputAULabelSlice(a, b, MOUTH, 30, 30, 20, 10, 24);    // AU10、AU12、AU15、AU16、AU18、AU20、AU22、AU23、AU24
 }

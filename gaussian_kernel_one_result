@@ -1,0 +1,1944 @@
+Num: S010, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 20 
+Num: S010, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S010, Expression: 003, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 4 
+Num: S010, Expression: 004, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 7 23 24 
+Num: S010, Expression: 005, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 4 6 7 9 16 
+Num: S010, Expression: 006, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 6 12 16 
+Num: S011, Expression: 001, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 1 2 
+Num: S011, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 4 15 
+Num: S011, Expression: 003, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 4 7 20 
+Num: S011, Expression: 004, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 7 23 24 
+Num: S011, Expression: 005, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 9 
+Num: S011, Expression: 006, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S014, Expression: 001, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 2 5 12 
+Num: S014, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 4 15 
+Num: S014, Expression: 003, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 4 7 10 23 24 
+Num: S014, Expression: 004, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 9 
+Num: S014, Expression: 005, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S022, Expression: 001, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 1 2 
+Num: S022, Expression: 002, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 2 4 20 
+Num: S022, Expression: 003, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 12 16 
+Num: S022, Expression: 004, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S022, Expression: 005, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 15 24 
+Num: S022, Expression: 006, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 9 
+Num: S026, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S026, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 4 15 
+Num: S026, Expression: 003, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 24 
+Num: S026, Expression: 004, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 6 7 9 15 
+Num: S026, Expression: 005, correct: 0, miss: 0, wrong: 6
+	correct: 
+	miss: 
+	wrong: 1 4 6 7 10 20 
+Num: S026, Expression: 006, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 6 12 16 
+Num: S032, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S032, Expression: 002, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 4 10 15 
+Num: S032, Expression: 003, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 23 24 
+Num: S032, Expression: 004, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 20 
+Num: S032, Expression: 005, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 6 7 9 
+Num: S032, Expression: 006, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S034, Expression: 001, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 2 5 12 
+Num: S034, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 20 
+Num: S034, Expression: 003, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 4 7 9 23 24 
+Num: S034, Expression: 004, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 9 
+Num: S034, Expression: 005, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S035, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S035, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 4 
+Num: S035, Expression: 003, correct: 0, miss: 0, wrong: 6
+	correct: 
+	miss: 
+	wrong: 4 6 7 9 12 20 
+Num: S035, Expression: 004, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 4 
+Num: S035, Expression: 005, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 6 7 9 
+Num: S035, Expression: 006, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S037, Expression: 001, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 1 2 
+Num: S037, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 4 
+Num: S037, Expression: 003, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 7 23 24 
+Num: S037, Expression: 004, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 7 9 23 
+Num: S037, Expression: 005, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 20 
+Num: S037, Expression: 006, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S042, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S042, Expression: 002, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 1 4 
+Num: S042, Expression: 003, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 4 20 
+Num: S042, Expression: 004, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 7 23 24 
+Num: S042, Expression: 005, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 4 6 7 9 10 
+Num: S042, Expression: 006, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S044, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S044, Expression: 002, correct: 0, miss: 0, wrong: 6
+	correct: 
+	miss: 
+	wrong: 1 4 6 7 12 20 
+Num: S044, Expression: 003, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S044, Expression: 004, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 4 
+Num: S044, Expression: 005, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 5 7 
+Num: S044, Expression: 006, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 6 7 9 
+Num: S045, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 12 
+Num: S045, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 24 
+Num: S045, Expression: 003, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S045, Expression: 004, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 9 
+Num: S045, Expression: 005, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 7 23 24 
+Num: S046, Expression: 001, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 1 15 
+Num: S046, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S046, Expression: 003, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 4 20 
+Num: S046, Expression: 004, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 9 
+Num: S046, Expression: 005, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S050, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 20 
+Num: S050, Expression: 002, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 2 5 15 
+Num: S050, Expression: 003, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 15 24 
+Num: S050, Expression: 004, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 24 
+Num: S050, Expression: 005, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 9 
+Num: S050, Expression: 006, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S051, Expression: 001, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 2 4 20 
+Num: S052, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S052, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 4 
+Num: S052, Expression: 003, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 7 23 24 
+Num: S052, Expression: 004, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S053, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S053, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 4 
+Num: S053, Expression: 003, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 7 23 24 
+Num: S053, Expression: 004, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S054, Expression: 001, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S054, Expression: 002, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 5 7 20 
+Num: S055, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S055, Expression: 002, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 15 22 
+Num: S055, Expression: 003, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 6 7 9 
+Num: S055, Expression: 004, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 23 24 
+Num: S055, Expression: 005, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 6 12 16 
+Num: S056, Expression: 001, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S056, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 9 
+Num: S057, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S057, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S057, Expression: 003, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 6 7 9 
+Num: S057, Expression: 004, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 7 10 20 
+Num: S057, Expression: 005, correct: 0, miss: 0, wrong: 6
+	correct: 
+	miss: 
+	wrong: 4 7 9 18 23 24 
+Num: S057, Expression: 006, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S058, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S058, Expression: 002, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 12 16 
+Num: S058, Expression: 003, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 4 15 
+Num: S059, Expression: 001, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 2 5 16 
+Num: S059, Expression: 002, correct: 0, miss: 0, wrong: 6
+	correct: 
+	miss: 
+	wrong: 1 4 5 6 7 20 
+Num: S059, Expression: 003, correct: 0, miss: 0, wrong: 6
+	correct: 
+	miss: 
+	wrong: 4 6 7 9 23 24 
+Num: S060, Expression: 001, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S060, Expression: 002, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S061, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S061, Expression: 002, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S062, Expression: 001, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 2 5 20 
+Num: S062, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S062, Expression: 003, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S062, Expression: 004, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S063, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S063, Expression: 002, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S064, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S064, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 10 23 24 
+Num: S064, Expression: 003, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S065, Expression: 001, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 2 4 15 
+Num: S065, Expression: 002, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 1 2 4 5 20 
+Num: S065, Expression: 003, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S065, Expression: 004, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S066, Expression: 001, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 1 2 4 7 20 
+Num: S066, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S066, Expression: 003, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S067, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 15 
+Num: S067, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S067, Expression: 003, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 5 20 
+Num: S067, Expression: 004, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 4 7 16 23 24 
+Num: S067, Expression: 005, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S068, Expression: 001, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 1 2 4 15 22 
+Num: S068, Expression: 002, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S069, Expression: 001, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 1 15 
+Num: S069, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S069, Expression: 003, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 6 7 9 
+Num: S069, Expression: 004, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S069, Expression: 005, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 7 9 23 24 
+Num: S070, Expression: 001, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 1 2 4 6 20 
+Num: S070, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S070, Expression: 003, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S071, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S071, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 4 15 
+Num: S071, Expression: 003, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 6 16 20 
+Num: S071, Expression: 004, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 7 23 24 
+Num: S071, Expression: 005, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S072, Expression: 001, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S072, Expression: 002, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 15 24 
+Num: S072, Expression: 003, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S072, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S072, Expression: 005, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 4 6 7 23 24 
+Num: S072, Expression: 006, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S073, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S073, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S073, Expression: 003, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 15 24 
+Num: S073, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S073, Expression: 005, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 20 
+Num: S073, Expression: 006, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 6 7 9 
+Num: S074, Expression: 001, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 1 2 5 16 20 
+Num: S074, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S074, Expression: 003, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S074, Expression: 004, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 6 7 9 
+Num: S074, Expression: 005, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S075, Expression: 001, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 2 15 24 
+Num: S075, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S075, Expression: 003, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 15 23 
+Num: S075, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S075, Expression: 005, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 6 7 9 
+Num: S075, Expression: 006, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S075, Expression: 007, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 4 5 12 16 20 
+Num: S076, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S076, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S076, Expression: 003, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 15 22 24 
+Num: S076, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S076, Expression: 005, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 6 7 9 
+Num: S076, Expression: 006, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S077, Expression: 001, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 1 2 
+Num: S077, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S077, Expression: 003, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S077, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S077, Expression: 005, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 6 7 20 
+Num: S077, Expression: 006, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 7 9 
+Num: S077, Expression: 007, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 23 24 
+Num: S078, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S078, Expression: 002, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 1 4 
+Num: S078, Expression: 003, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 4 6 20 
+Num: S078, Expression: 004, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S078, Expression: 005, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S078, Expression: 006, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S079, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S079, Expression: 002, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 4 9 
+Num: S079, Expression: 003, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 4 20 
+Num: S079, Expression: 004, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S080, Expression: 001, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 2 5 16 
+Num: S080, Expression: 002, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 12 16 
+Num: S080, Expression: 003, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S080, Expression: 004, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 1 4 7 12 20 
+Num: S081, Expression: 001, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 1 2 
+Num: S081, Expression: 002, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 2 4 15 
+Num: S081, Expression: 003, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S081, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S081, Expression: 005, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 6 12 20 
+Num: S082, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S082, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S082, Expression: 003, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S082, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S082, Expression: 005, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 4 7 9 23 24 
+Num: S082, Expression: 006, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 5 7 20 
+Num: S082, Expression: 007, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 6 7 9 
+Num: S083, Expression: 001, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S083, Expression: 002, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S083, Expression: 003, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S083, Expression: 004, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 6 7 20 
+Num: S084, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S084, Expression: 002, correct: 0, miss: 0, wrong: 6
+	correct: 
+	miss: 
+	wrong: 1 4 5 6 7 20 
+Num: S085, Expression: 001, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 4 15 
+Num: S085, Expression: 002, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 6 12 16 20 
+Num: S086, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S086, Expression: 002, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S087, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S087, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S087, Expression: 003, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S087, Expression: 004, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 6 7 9 
+Num: S087, Expression: 005, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S087, Expression: 006, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 7 15 20 
+Num: S088, Expression: 001, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 1 2 
+Num: S088, Expression: 002, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 1 4 6 7 20 
+Num: S088, Expression: 003, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S088, Expression: 004, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 6 9 
+Num: S089, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S089, Expression: 002, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S089, Expression: 003, correct: 0, miss: 0, wrong: 7
+	correct: 
+	miss: 
+	wrong: 4 6 7 10 18 23 24 
+Num: S091, Expression: 001, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 2 5 20 
+Num: S091, Expression: 002, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S091, Expression: 003, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S092, Expression: 001, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 1 2 
+Num: S092, Expression: 002, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S092, Expression: 003, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 4 7 18 23 24 
+Num: S092, Expression: 004, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S093, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 4 15 
+Num: S093, Expression: 002, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 1 4 7 16 20 
+Num: S093, Expression: 003, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S094, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S094, Expression: 003, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 4 15 
+Num: S094, Expression: 004, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S095, Expression: 001, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 1 2 
+Num: S095, Expression: 002, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 1 4 7 16 20 
+Num: S095, Expression: 003, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 20 
+Num: S095, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S095, Expression: 005, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S095, Expression: 006, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 9 
+Num: S095, Expression: 007, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S096, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S096, Expression: 002, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S096, Expression: 003, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 7 9 
+Num: S096, Expression: 004, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S097, Expression: 001, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 1 2 
+Num: S097, Expression: 002, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S097, Expression: 003, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S097, Expression: 004, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 6 7 9 
+Num: S097, Expression: 005, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 6 7 20 
+Num: S097, Expression: 006, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S098, Expression: 001, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S098, Expression: 002, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S098, Expression: 003, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 6 7 9 
+Num: S098, Expression: 004, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 6 7 12 
+Num: S099, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S099, Expression: 002, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 16 20 
+Num: S099, Expression: 003, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S099, Expression: 004, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 6 7 12 
+Num: S100, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S100, Expression: 003, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 15 23 
+Num: S100, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S100, Expression: 005, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 23 24 
+Num: S100, Expression: 006, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 6 7 12 
+Num: S101, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 20 
+Num: S101, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S101, Expression: 003, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 1 4 7 20 23 
+Num: S101, Expression: 004, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S101, Expression: 005, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S102, Expression: 001, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 20 
+Num: S102, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S102, Expression: 003, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 4 10 20 
+Num: S102, Expression: 004, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S102, Expression: 005, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S102, Expression: 006, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S102, Expression: 007, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S102, Expression: 008, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S102, Expression: 009, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 6 7 9 
+Num: S103, Expression: 001, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 1 2 
+Num: S103, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S103, Expression: 003, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S103, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S103, Expression: 005, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S103, Expression: 006, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S103, Expression: 007, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S103, Expression: 008, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 4 20 
+Num: S104, Expression: 001, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S104, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S104, Expression: 003, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S105, Expression: 001, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 1 15 
+Num: S105, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 4 15 
+Num: S105, Expression: 003, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S105, Expression: 004, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S105, Expression: 005, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S105, Expression: 006, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S105, Expression: 007, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 7 9 23 
+Num: S105, Expression: 008, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 9 
+Num: S106, Expression: 001, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 2 4 5 
+Num: S106, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 4 15 
+Num: S106, Expression: 003, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S106, Expression: 004, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 9 
+Num: S106, Expression: 005, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 4 
+Num: S106, Expression: 006, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S106, Expression: 007, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S107, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S107, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S107, Expression: 003, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S107, Expression: 004, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 5 20 
+Num: S107, Expression: 005, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 7 9 10 
+Num: S107, Expression: 006, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S108, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S108, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S108, Expression: 003, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S108, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S108, Expression: 005, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 4 15 
+Num: S108, Expression: 006, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 9 
+Num: S108, Expression: 007, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 4 7 
+Num: S108, Expression: 008, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 6 7 12 
+Num: S109, Expression: 001, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S109, Expression: 002, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S109, Expression: 003, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 24 
+Num: S109, Expression: 004, correct: 0, miss: 0, wrong: 7
+	correct: 
+	miss: 
+	wrong: 4 6 7 9 10 12 20 
+Num: S109, Expression: 005, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 9 
+Num: S109, Expression: 006, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S110, Expression: 001, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 1 2 
+Num: S110, Expression: 002, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 4 12 20 
+Num: S110, Expression: 003, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 1 4 16 18 23 
+Num: S110, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S110, Expression: 005, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S110, Expression: 006, correct: 0, miss: 0, wrong: 6
+	correct: 
+	miss: 
+	wrong: 4 7 16 18 23 24 
+Num: S110, Expression: 007, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S111, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S111, Expression: 002, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S111, Expression: 003, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S111, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S111, Expression: 005, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S111, Expression: 006, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 7 23 24 
+Num: S111, Expression: 007, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 9 
+Num: S112, Expression: 001, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 2 5 22 
+Num: S112, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 20 
+Num: S112, Expression: 003, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S112, Expression: 004, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S112, Expression: 005, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 6 7 23 24 
+Num: S113, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S113, Expression: 002, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 4 7 20 
+Num: S113, Expression: 003, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 15 
+Num: S113, Expression: 004, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S113, Expression: 005, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S113, Expression: 006, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S113, Expression: 007, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S113, Expression: 008, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 7 23 24 
+Num: S114, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S114, Expression: 002, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S114, Expression: 003, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S114, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S114, Expression: 005, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S114, Expression: 006, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 6 7 12 
+Num: S115, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S115, Expression: 002, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 4 7 20 
+Num: S115, Expression: 003, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 20 
+Num: S115, Expression: 004, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 15 
+Num: S115, Expression: 005, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S115, Expression: 006, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 15 23 
+Num: S115, Expression: 007, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S115, Expression: 008, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S116, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 20 
+Num: S116, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S116, Expression: 003, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S116, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S116, Expression: 005, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S116, Expression: 006, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 6 7 9 
+Num: S116, Expression: 007, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S117, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S117, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 4 15 
+Num: S117, Expression: 003, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 1 4 7 10 20 
+Num: S117, Expression: 004, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S117, Expression: 005, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S117, Expression: 006, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 23 24 
+Num: S117, Expression: 007, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S118, Expression: 001, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 1 20 
+Num: S118, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S118, Expression: 003, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S118, Expression: 004, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 16 20 
+Num: S118, Expression: 005, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 4 15 
+Num: S118, Expression: 006, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 4 9 
+Num: S119, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S119, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 1 
+Num: S119, Expression: 003, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 4 5 20 
+Num: S119, Expression: 004, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 1 15 
+Num: S119, Expression: 005, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S119, Expression: 006, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S119, Expression: 007, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S119, Expression: 008, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 7 23 24 
+Num: S120, Expression: 001, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S120, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 15 
+Num: S121, Expression: 001, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S121, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 20 
+Num: S121, Expression: 003, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 20 
+Num: S121, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S121, Expression: 005, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S122, Expression: 001, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 1 2 
+Num: S122, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 20 
+Num: S122, Expression: 003, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S122, Expression: 004, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S122, Expression: 005, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S124, Expression: 001, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 2 5 23 
+Num: S124, Expression: 002, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 4 15 23 
+Num: S124, Expression: 003, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 4 20 
+Num: S124, Expression: 004, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S124, Expression: 005, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S124, Expression: 006, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 4 9 
+Num: S124, Expression: 007, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S125, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 4 15 
+Num: S125, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S125, Expression: 003, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 4 15 
+Num: S125, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S125, Expression: 005, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S127, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S127, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S127, Expression: 003, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S127, Expression: 004, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S130, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S130, Expression: 002, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 4 7 20 
+Num: S130, Expression: 003, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S130, Expression: 004, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S130, Expression: 005, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S130, Expression: 006, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S130, Expression: 007, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 7 23 24 
+Num: S130, Expression: 008, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 5 20 
+Num: S131, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S131, Expression: 002, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 4 7 15 
+Num: S131, Expression: 003, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 4 7 15 
+Num: S131, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S131, Expression: 005, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S131, Expression: 006, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S131, Expression: 007, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S132, Expression: 001, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 1 15 
+Num: S132, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 4 15 
+Num: S132, Expression: 003, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 1 4 6 12 20 
+Num: S132, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S132, Expression: 005, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 9 
+Num: S132, Expression: 006, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S132, Expression: 007, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S133, Expression: 001, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S133, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 7 15 
+Num: S133, Expression: 003, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 4 7 18 23 24 
+Num: S133, Expression: 004, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 15 
+Num: S134, Expression: 001, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S134, Expression: 002, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S134, Expression: 003, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 4 7 23 24 
+Num: S134, Expression: 004, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S135, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S135, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S135, Expression: 003, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S135, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S136, Expression: 001, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 2 4 5 
+Num: S136, Expression: 002, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 4 20 
+Num: S136, Expression: 003, correct: 0, miss: 0, wrong: 4
+	correct: 
+	miss: 
+	wrong: 1 4 15 23 
+Num: S136, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S136, Expression: 005, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 4 23 24 
+Num: S136, Expression: 006, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 6 12 
+Num: S137, Expression: 001, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 1 2 5 
+Num: S137, Expression: 002, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 12 
+Num: S137, Expression: 003, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S137, Expression: 004, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S138, Expression: 001, correct: 0, miss: 0, wrong: 5
+	correct: 
+	miss: 
+	wrong: 1 4 5 10 20 
+Num: S138, Expression: 002, correct: 0, miss: 0, wrong: 2
+	correct: 
+	miss: 
+	wrong: 5 20 
+Num: S138, Expression: 003, correct: 0, miss: 0, wrong: 0
+	correct: 
+	miss: 
+	wrong: 
+Num: S138, Expression: 004, correct: 0, miss: 0, wrong: 1
+	correct: 
+	miss: 
+	wrong: 5 
+Num: S138, Expression: 005, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 6 7 12 
+Num: S138, Expression: 006, correct: 0, miss: 0, wrong: 3
+	correct: 
+	miss: 
+	wrong: 6 7 12 
