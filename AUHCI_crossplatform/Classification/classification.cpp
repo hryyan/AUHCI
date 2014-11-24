@@ -387,6 +387,9 @@ void getAU(bool* au_bool, Mat& gabor_img)
 {
 	Mat m[10];
 	int *output = (int*)malloc(kAuNum*2*sizeof(int));
+
+    frame_detpar.mouthx = 75;
+    frame_detpar.mouthy = frame_detpar.nosey + 32;
 	getROI(gabor_img, 15, 15, 35, 10, frame_detpar, EYE,   m[0], m[1]);
 	getROI(gabor_img, 15, 15, 15, 15, frame_detpar, EYE,   m[2], m[3]);
 	getROI(gabor_img, 20, 20, 10, 50, frame_detpar, EYE,   m[4], m[5]);

@@ -16,7 +16,7 @@ enum Type
 
 int main(int argc, char *argv[])
 {
-    int program_type = TESTMOUTHBASEDAU;
+    int program_type = CLASSIFYSAMPLES;
 
     // Generate training samples
     if (program_type == GENERATESAMPLES)

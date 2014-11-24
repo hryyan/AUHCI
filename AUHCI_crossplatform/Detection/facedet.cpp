@@ -205,6 +205,7 @@ void PrintFaceToFrame()
         cvtColor(frame, frame, CV_BGR2GRAY);
 
     vec_DetPar v_detpar = DetectFaces_(frame, false, 30);
+    qDebug() << "frame.x = " << frame.cols << "frame.y = " << frame.rows;
 	if (!v_detpar.empty())
 		frame_detpar = v_detpar.at(0);
 	else

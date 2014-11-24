@@ -54,8 +54,8 @@ FacialExpressionX64::FacialExpressionX64(QWidget *parent, Qt::WFlags flags)
 
 
     // 设置显示AU状态的小灯泡
-    on_pixmap   = new QPixmap("./Resources/on.png");
-    off_pixmap  = new QPixmap("./Resources/off.png");
+    on_pixmap   = new QPixmap("../AUHCI_crossplatform/Resources/on.png");
+    off_pixmap  = new QPixmap("../AUHCI_crossplatform/Resources/off.png");
 
     for (int i = 0; i < kBulbNum; i++)
     {
@@ -372,9 +372,9 @@ void ProcessThread::run()
 		{
 			PrintFaceToFrame();
 			if (frame.rows == 0 && frame.cols == 0)
-				return;
+                continue;
 			DetectEyes();
-			//DetectMouth();
+            DetectNose();
 			face_img = Mat2QImage(frame);
 
 			// 第二个是是否获得Gabor滤波
@@ -386,8 +386,6 @@ void ProcessThread::run()
 				// 第三个是是否获得AU
 				if (classify)
 				{
-					frame_detpar.mouthx = 74;
-					frame_detpar.mouthy = 125;
 					//cv::imwrite("g.jpg", gabor);
 					//gabor = cv::imread("g.jpg", CV_LOAD_IMAGE_GRAYSCALE);
 					au_appear = Classify(gabor);
