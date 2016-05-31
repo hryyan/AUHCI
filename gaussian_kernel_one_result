@@ -123,7 +123,7 @@ Num: S032, Expression: 002, correct: 0, miss: 0, wrong: 4
 	miss: 
 	wrong: 1 4 10 15 
 Num: S032, Expression: 003, correct: 0, miss: 0, wrong: 3
-	correct: 
+	correct: 1
 	miss: 
 	wrong: 4 23 24 
 Num: S032, Expression: 004, correct: 0, miss: 0, wrong: 3
